@@ -1,0 +1,1575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AUDIO CONVERTER — Free Online Audio Effects Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Noto+Nastaliq+Urdu:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0A0714; --bg-alt:#120D22; --surface:#170F2B; --surface-2:#1F1638;
+    --line: rgba(255,255,255,0.09); --line-strong: rgba(255,255,255,0.16);
+    --text:#F5F3FA; --text-muted:#9C93B5;
+    --violet:#8B5CF6; --violet-dim:#5B3B9E; --violet-glow: rgba(139,92,246,.35);
+    --pink:#FF3EA5; --pink-dim:#A8266F; --pink-glow: rgba(255,62,165,.32);
+    --cyan:#22D3EE; --danger:#FF6B6B;
+    --r-sm:10px; --r-md:16px; --r-lg:24px; --r-xl:32px;
+    --shadow-soft: 0 24px 70px -24px rgba(0,0,0,.7);
+    --font-display:'Sora', sans-serif; --font-body:'Plus Jakarta Sans', sans-serif;
+    --font-mono:'JetBrains Mono', monospace; --font-ur:'Noto Nastaliq Urdu', 'Plus Jakarta Sans', sans-serif;
+  }
+  *,*::before,*::after{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{ margin:0; background:var(--bg); color:var(--text); font-family:var(--font-body); line-height:1.55; -webkit-font-smoothing:antialiased; overflow-x:hidden; }
+  body.lang-ur{ font-family:var(--font-ur); line-height:2.05; }
+  body.lang-ur h1, body.lang-ur h2, body.lang-ur h3{ font-family:var(--font-ur); font-weight:700; }
+  h1,h2,h3{ font-family:var(--font-display); margin:0; letter-spacing:-0.02em; }
+  p{ margin:0; } a{ color:inherit; text-decoration:none; } button{ font-family:inherit; cursor:pointer; }
+  input,textarea{ font-family:inherit; } ul{ margin:0; padding:0; list-style:none; } img,svg{ display:block; }
+
+  .visually-hidden{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+  .hidden{ display:none !important; }
+  :focus-visible{ outline:2px solid var(--violet); outline-offset:3px; border-radius:4px; }
+  @media (prefers-reduced-motion: reduce){ *{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; scroll-behavior:auto !important; } }
+
+  .bg-fx{ position:fixed; inset:0; z-index:-1; pointer-events:none;
+    background: radial-gradient(650px 500px at 88% -5%, var(--violet-glow), transparent 60%),
+                radial-gradient(600px 460px at -5% 100%, var(--pink-glow), transparent 60%), var(--bg); }
+
+  main{ min-height:100vh; }
+  .view{ display:none; } .view.active{ display:block; animation:viewIn .5s ease both; }
+  @keyframes viewIn{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
+  .wrap{ max-width:1180px; margin:0 auto; padding:0 24px; }
+
+  /* NAV */
+  .nav{ position:sticky; top:0; z-index:50; display:flex; align-items:center; justify-content:space-between; gap:14px;
+    padding:16px 24px; max-width:1180px; margin:0 auto; background:rgba(10,7,20,.72); backdrop-filter:blur(10px); flex-wrap:wrap; }
+  .logo{ display:flex; align-items:center; gap:10px; font-family:var(--font-display); font-weight:700; font-size:16.5px; }
+  .eq-mark{ display:flex; align-items:flex-end; gap:2.5px; height:18px; }
+  .eq-mark span{ width:3.5px; border-radius:2px; background:linear-gradient(var(--violet), var(--pink)); }
+  .eq-mark span:nth-child(1){ height:6px; } .eq-mark span:nth-child(2){ height:16px; }
+  .eq-mark span:nth-child(3){ height:10px; } .eq-mark span:nth-child(4){ height:14px; }
+  .nav-links{ display:flex; gap:24px; font-size:13.5px; font-weight:600; color:var(--text-muted); }
+  .nav-links a{ transition:color .2s ease; } .nav-links a:hover{ color:var(--text); }
+  body:not([data-view="home"]) .nav-links{ display:none; }
+  .nav-actions{ display:flex; align-items:center; gap:12px; }
+  .lang-toggle{ display:flex; border:1px solid var(--line-strong); border-radius:999px; padding:3px; gap:2px; }
+  .lang-btn{ background:none; border:none; color:var(--text-muted); font-size:12px; font-weight:700; padding:6px 11px; border-radius:999px; transition:all .15s ease; }
+  .lang-btn.is-active{ background:var(--violet); color:#fff; }
+  body[data-authed="true"] .nav-guest{ display:none; } body[data-authed="false"] .nav-user{ display:none; }
+  .nav-user{ display:flex; align-items:center; gap:12px; }
+  .nav-welcome{ font-size:13.5px; color:var(--text-muted); } .nav-welcome strong{ color:var(--text); }
+  .nav-guest{ display:flex; gap:10px; }
+
+  /* BUTTONS */
+  .btn{ display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:13px 22px; border-radius:999px; border:1px solid transparent;
+    font-weight:700; font-size:14px; transition:transform .15s ease, box-shadow .2s ease, opacity .2s ease; white-space:nowrap; }
+  .btn:active{ transform:scale(.97); }
+  .btn-primary{ background:linear-gradient(135deg, var(--violet), var(--pink)); color:#fff; box-shadow:0 14px 32px -12px var(--violet-glow); }
+  .btn-primary:hover{ box-shadow:0 18px 40px -10px var(--pink-glow); transform:translateY(-1px); }
+  .btn-ghost{ background:transparent; border-color:var(--line-strong); color:var(--text); }
+  .btn-ghost:hover{ border-color:var(--violet); color:var(--violet); }
+  .btn-block{ width:100%; } .btn:disabled{ opacity:.6; cursor:default; transform:none; }
+  .btn-sm{ padding:9px 16px; font-size:13px; }
+  .btn-text{ background:none; border:none; padding:4px; color:var(--pink); font-weight:700; font-size:14px; }
+
+  /* HERO */
+  .hero{ display:grid; grid-template-columns:1.05fr .95fr; gap:44px; align-items:center; padding:60px 24px 40px; max-width:1180px; margin:0 auto; }
+  .eyebrow{ display:inline-flex; align-items:center; gap:8px; font-family:var(--font-mono); font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--pink); margin-bottom:18px; }
+  .eyebrow::before{ content:''; width:6px; height:6px; border-radius:50%; background:var(--pink); box-shadow:0 0 10px var(--pink-glow); }
+  body.lang-ur .eyebrow{ text-transform:none; letter-spacing:0; font-family:var(--font-ur); }
+  .hero h1{ font-size:clamp(36px,5.2vw,56px); line-height:1.05; font-weight:800; }
+  .hero h1 .accent{ display:block; background:linear-gradient(90deg, var(--violet), var(--pink)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .hero-sub{ margin-top:18px; font-size:16.5px; color:var(--text-muted); max-width:460px; }
+  .hero-cta{ display:flex; gap:14px; margin-top:30px; flex-wrap:wrap; }
+  .hero-trust{ margin-top:24px; font-family:var(--font-mono); font-size:12.5px; color:var(--text-muted); }
+
+  .hero-visual{ perspective:1400px; display:flex; justify-content:center; }
+  .player-float{ animation:floatY 5s ease-in-out infinite; } @keyframes floatY{ 0%,100%{transform:translateY(0);} 50%{transform:translateY(-14px);} }
+  .player-tilt{ transform-style:preserve-3d; transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)); transition:transform .2s ease-out; }
+  .player-card{ position:relative; width:280px; border-radius:28px; background:linear-gradient(160deg, var(--surface-2), var(--surface));
+    border:1px solid var(--line-strong); padding:24px; box-shadow:var(--shadow-soft); }
+  .player-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+  .eq-bars{ display:flex; align-items:flex-end; gap:3px; height:22px; }
+  .eq-bars span{ width:4px; border-radius:2px; background:linear-gradient(var(--violet), var(--pink)); animation:eqBounce 1.1s ease-in-out infinite; }
+  .eq-bars span:nth-child(1){ animation-delay:0s; } .eq-bars span:nth-child(2){ animation-delay:.15s; }
+  .eq-bars span:nth-child(3){ animation-delay:.3s; } .eq-bars span:nth-child(4){ animation-delay:.1s; } .eq-bars span:nth-child(5){ animation-delay:.25s; }
+  @keyframes eqBounce{ 0%,100%{ height:5px; } 50%{ height:22px; } }
+  .player-status{ font-family:var(--font-mono); font-size:11px; color:var(--text-muted); }
+  .player-file{ font-family:var(--font-mono); font-size:13px; color:var(--text-muted); padding:10px 0; border-top:1px solid var(--line); }
+  .player-arrow{ text-align:center; color:var(--violet); font-size:16px; padding:2px 0; }
+  .player-result{ font-family:var(--font-mono); font-size:13px; font-weight:700; color:var(--cyan); padding-bottom:14px; border-bottom:1px solid var(--line); }
+  .player-tags{ display:flex; gap:8px; margin-top:14px; flex-wrap:wrap; }
+
+  /* SECTIONS */
+  .section{ padding:66px 24px; max-width:1180px; margin:0 auto; }
+  .section-head{ max-width:580px; margin-bottom:40px; }
+  .section-head h2{ font-size:clamp(26px,3.4vw,36px); margin-top:10px; }
+  .section-head p{ margin-top:12px; color:var(--text-muted); font-size:15px; }
+
+  .services-grid{ perspective:1600px; display:grid; grid-template-columns:repeat(4,1fr); gap:20px; }
+  .tilt{ --rx:0deg; --ry:0deg; --mx:50%; --my:50%; transform-style:preserve-3d; transform:rotateX(var(--rx)) rotateY(var(--ry)); transition:transform .2s ease-out, box-shadow .2s ease; }
+  .service-card{ position:relative; overflow:hidden; border-radius:var(--r-lg); padding:26px 22px;
+    background:linear-gradient(160deg, var(--surface-2), var(--surface)); border:1px solid var(--line-strong); box-shadow:var(--shadow-soft); }
+  .service-card::before{ content:''; position:absolute; inset:0; opacity:0; pointer-events:none;
+    background:radial-gradient(240px circle at var(--mx) var(--my), rgba(255,255,255,.1), transparent 60%); transition:opacity .25s ease; }
+  .service-card:hover::before{ opacity:1; }
+  .icon-badge{ width:44px; height:44px; border-radius:14px; display:flex; align-items:center; justify-content:center; margin-bottom:16px; }
+  .icon-badge--v{ background:rgba(139,92,246,.16); border:1px solid rgba(139,92,246,.32); }
+  .icon-badge--p{ background:rgba(255,62,165,.14); border:1px solid rgba(255,62,165,.3); }
+  .icon-badge--c{ background:rgba(34,211,238,.14); border:1px solid rgba(34,211,238,.3); }
+  .service-card h3{ font-size:17px; margin-bottom:8px; } .service-card p{ color:var(--text-muted); font-size:13.5px; }
+
+  .showcase-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:16px; margin-bottom:28px; }
+  .showcase-card{ background:var(--surface); border:1px solid var(--line); border-radius:var(--r-md); padding:18px; }
+  .showcase-card h4{ font-family:var(--font-body); font-weight:700; font-size:14.5px; margin-bottom:6px; }
+  .showcase-card p{ font-size:12.5px; color:var(--text-muted); }
+  .showcase-cta{ text-align:center; }
+
+  .steps{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+  .step{ background:var(--surface); border:1px solid var(--line); border-radius:var(--r-lg); padding:22px 18px; }
+  .step-num{ font-family:var(--font-mono); font-size:13px; color:var(--pink); font-weight:700; margin-bottom:12px; }
+  .step h4{ font-family:var(--font-body); font-weight:700; font-size:14.5px; margin-bottom:6px; }
+  .step p{ font-size:13px; color:var(--text-muted); }
+
+  .trust{ display:flex; flex-wrap:wrap; gap:14px; }
+  .badge{ display:flex; align-items:center; gap:10px; padding:12px 18px; border:1px solid var(--line); border-radius:999px; background:var(--surface); font-size:13px; color:var(--text-muted); }
+
+  .footer{ border-top:1px solid var(--line); padding:44px 24px; max-width:1180px; margin:20px auto 0; display:flex; justify-content:space-between; gap:24px; flex-wrap:wrap; }
+  .footer-tag{ color:var(--text-muted); font-size:13.5px; margin-top:8px; max-width:260px; }
+  .footer-links{ display:flex; flex-direction:column; gap:8px; font-size:13.5px; }
+  .footer-links a{ color:var(--text-muted); } .footer-links a:hover{ color:var(--text); }
+  .footer-contact{ font-size:13.5px; color:var(--text-muted); display:flex; flex-direction:column; gap:6px; font-family:var(--font-mono); }
+  .footer-copy{ width:100%; margin-top:24px; padding-top:20px; border-top:1px solid var(--line); font-size:12px; color:var(--text-muted); }
+
+  /* PAGE SHELL (policy/contact) */
+  .page-shell{ max-width:760px; margin:0 auto; padding:50px 24px 80px; }
+  .back-btn{ margin-bottom:20px; display:inline-flex; }
+  .page-shell h2{ font-size:30px; margin-bottom:6px; }
+  .page-updated{ color:var(--text-muted); font-size:13px; font-family:var(--font-mono); margin-bottom:32px; }
+  .policy-content h3{ font-size:17px; margin:26px 0 8px; } .policy-content p{ color:var(--text-muted); font-size:14.5px; }
+  .contact-grid{ display:grid; grid-template-columns:1.2fr .8fr; gap:32px; margin-top:24px; }
+  .contact-form .field{ margin-bottom:16px; }
+  .contact-info{ background:var(--surface); border:1px solid var(--line); border-radius:var(--r-lg); padding:24px; height:fit-content; }
+  .info-row{ display:flex; flex-direction:column; gap:4px; padding:12px 0; border-top:1px solid var(--line); font-size:13.5px; }
+  .info-row:first-child{ border-top:none; padding-top:0; }
+  .info-row strong{ color:var(--text-muted); font-size:11.5px; text-transform:uppercase; letter-spacing:.06em; }
+  .contact-success{ display:flex; align-items:center; gap:10px; margin-top:16px; padding:14px 16px; border-radius:var(--r-sm); background:rgba(34,211,238,.1); border:1px solid rgba(34,211,238,.3); font-size:13.5px; }
+  @media (max-width:760px){ .contact-grid{ grid-template-columns:1fr; } }
+
+  /* FORMS */
+  .field{ margin-bottom:16px; }
+  .field label{ display:block; font-size:12.5px; font-weight:700; color:var(--text-muted); margin-bottom:7px; text-transform:uppercase; letter-spacing:.04em; }
+  body.lang-ur .field label{ text-transform:none; }
+  .field input, .field textarea{ width:100%; padding:13px 14px; border-radius:var(--r-sm); background:var(--bg-alt); border:1px solid var(--line-strong); color:var(--text); font-size:14.5px; transition:border-color .2s ease; resize:vertical; }
+  .field input::placeholder, .field textarea::placeholder{ color:#5C5476; } .field input:focus, .field textarea:focus{ border-color:var(--violet); outline:none; }
+  .form-error{ min-height:0; color:var(--danger); font-size:13.5px; margin:0; font-weight:700; }
+  .form-error.show{ display:flex; align-items:center; gap:8px; background:rgba(255,107,107,.1); border:1px solid rgba(255,107,107,.35); border-radius:var(--r-sm); padding:11px 14px; margin:2px 0 14px; }
+  .form-error.show::before{ content:'!'; flex-shrink:0; width:18px; height:18px; border-radius:50%; background:var(--danger); color:#fff; font-size:12px; font-weight:800; display:flex; align-items:center; justify-content:center; }
+  @keyframes shake{ 10%,90%{transform:translateX(-1px);} 20%,80%{transform:translateX(2px);} 30%,50%,70%{transform:translateX(-4px);} 40%,60%{transform:translateX(4px);} }
+  .shake{ animation:shake .4s ease; }
+
+  /* AUTH */
+  .auth-shell{ min-height:calc(100vh - 78px); display:flex; align-items:center; justify-content:center; padding:40px 24px; }
+  .auth-card{ width:100%; max-width:440px; padding:36px 32px; background:linear-gradient(160deg, var(--surface-2), var(--surface)); border:1px solid var(--line-strong); border-radius:var(--r-xl); box-shadow:var(--shadow-soft); }
+  .auth-card h2{ font-size:25px; } .auth-sub{ color:var(--text-muted); font-size:14px; margin-top:8px; margin-bottom:24px; }
+  .auth-foot{ text-align:center; margin-top:18px; font-size:13.5px; color:var(--text-muted); }
+  .auth-divider{ display:flex; align-items:center; gap:12px; margin:20px 0; color:var(--text-muted); font-size:12px; }
+  .auth-divider::before,.auth-divider::after{ content:''; flex:1; height:1px; background:var(--line); }
+  .oauth-row{ display:flex; flex-direction:column; gap:10px; margin-bottom:4px; }
+  .oauth-btn{ display:flex; align-items:center; justify-content:center; gap:10px; width:100%; padding:12px; border-radius:999px; border:1px solid var(--line-strong); background:var(--bg-alt); color:var(--text); font-weight:700; font-size:13.5px; transition:border-color .2s ease, background .2s ease; }
+  .oauth-btn:hover{ border-color:var(--line-strong); background:var(--surface-2); }
+
+  /* OTP */
+  .demo-banner{ background:rgba(139,92,246,.1); border:1px solid rgba(139,92,246,.3); border-radius:var(--r-md); padding:16px 18px; margin-bottom:22px; }
+  .demo-banner strong{ font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--violet); }
+  body.lang-ur .demo-banner strong{ text-transform:none; }
+  .demo-banner p{ font-size:13px; color:var(--text-muted); margin-top:6px; }
+  .demo-code{ font-family:var(--font-mono); font-size:26px; font-weight:700; letter-spacing:.15em; color:var(--cyan); margin-top:10px; text-align:center; }
+  .otp-row{ display:flex; gap:9px; justify-content:center; margin:22px 0 8px; }
+  .otp-box{ width:44px; height:52px; text-align:center; font-size:20px; font-family:var(--font-mono); font-weight:700; border-radius:var(--r-sm); background:var(--bg-alt); border:1px solid var(--line-strong); color:var(--text); }
+  .otp-box:focus{ border-color:var(--violet); outline:none; }
+
+  /* DASHBOARD */
+  .dash{ max-width:1180px; margin:0 auto; padding:36px 24px 90px; }
+  .dash-title{ font-size:25px; } .dash-sub{ color:var(--text-muted); font-size:14px; margin-top:6px; }
+  .dash-section{ margin-top:36px; } .dash-section h3{ font-size:18px; margin-bottom:4px; }
+  .dash-section-sub{ color:var(--text-muted); font-size:13.5px; margin-bottom:18px; }
+
+  .upload-zone{ margin-top:22px; border:2px dashed var(--line-strong); border-radius:var(--r-xl); padding:36px 24px; text-align:center; transition:border-color .2s ease, background .2s ease; }
+  .upload-zone.drag-over{ border-color:var(--violet); background:rgba(139,92,246,.06); }
+  .upload-zone svg{ margin:0 auto 14px; }
+  .upload-zone p{ color:var(--text-muted); font-size:14px; }
+  .upload-or{ margin:10px 0 !important; font-size:12px !important; }
+  .upload-zone .btn{ margin-top:4px; }
+  .upload-hint{ margin-top:12px !important; font-size:12px !important; font-family:var(--font-mono); }
+  .file-info{ display:flex; justify-content:space-between; align-items:center; gap:14px; text-align:left; flex-wrap:wrap; margin-bottom:16px; }
+  .file-name{ font-family:var(--font-mono); font-weight:700; font-size:14px; word-break:break-all; }
+  .file-meta{ font-family:var(--font-mono); font-size:12px; color:var(--text-muted); margin-top:4px; }
+  .waveform-canvas{ width:100%; height:80px; border-radius:var(--r-sm); background:var(--bg-alt); margin-bottom:14px; }
+  .audio-player{ width:100%; height:40px; }
+  .spinner{ width:34px; height:34px; border-radius:50%; border:3px solid var(--line-strong); border-top-color:var(--violet); margin:0 auto 14px; animation:spin .8s linear infinite; }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+
+  .preset-grid{ perspective:1600px; display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+  .preset-card{ text-align:left; position:relative; overflow:hidden; border-radius:var(--r-lg); padding:20px 18px;
+    background:linear-gradient(160deg, var(--surface-2), var(--surface)); border:1px solid var(--line-strong); box-shadow:var(--shadow-soft);
+    opacity:1; transition:opacity .2s ease, transform .2s ease-out, box-shadow .2s ease; width:100%; }
+  .preset-card::before{ content:''; position:absolute; inset:0; opacity:0; pointer-events:none; background:radial-gradient(220px circle at var(--mx) var(--my), rgba(255,255,255,.1), transparent 60%); transition:opacity .25s ease; }
+  .preset-card:hover::before{ opacity:1; }
+  body:not([data-file-loaded="true"]) .preset-card{ opacity:.5; cursor:not-allowed; }
+  .preset-card h4{ font-family:var(--font-body); font-weight:700; font-size:14.5px; margin:12px 0 6px; }
+  .preset-card p{ font-size:12px; color:var(--text-muted); }
+
+  .mode-tabs{ display:inline-flex; gap:4px; background:var(--surface); border:1px solid var(--line); border-radius:999px; padding:4px; margin-bottom:22px; }
+  .mode-tab{ background:none; border:none; color:var(--text-muted); font-weight:700; font-size:13.5px; padding:10px 18px; border-radius:999px; transition:all .15s ease; }
+  .mode-tab.is-active{ background:linear-gradient(135deg, var(--violet), var(--pink)); color:#fff; }
+  .mode-panel.hidden{ display:none; }
+  .auto-card{ background:linear-gradient(160deg, rgba(139,92,246,.12), rgba(255,62,165,.06)); border:1px solid var(--line-strong); border-radius:var(--r-xl); padding:28px; max-width:560px; }
+  .auto-card h3{ font-size:19px; margin-bottom:8px; }
+  .auto-card > p{ margin-bottom:18px; }
+  .auto-results{ margin-top:20px; padding-top:18px; border-top:1px solid var(--line); }
+  .auto-row{ display:flex; justify-content:space-between; align-items:center; padding:9px 0; font-size:13.5px; gap:14px; }
+  .auto-row span{ color:var(--text-muted); }
+  .auto-row strong{ font-family:var(--font-mono); color:var(--cyan); font-weight:700; text-align:right; }
+  #apply-auto-btn{ margin-top:16px; }
+  body:not([data-file-loaded="true"]) .auto-card #analyze-btn{ opacity:.5; pointer-events:none; }
+
+  .remix-panel{ background:var(--surface); border:1px solid var(--line); border-radius:var(--r-lg); padding:26px; }
+  body:not([data-file-loaded="true"]) .remix-panel{ opacity:.5; pointer-events:none; }
+  .slider-row{ display:grid; grid-template-columns:130px 1fr 70px; align-items:center; gap:14px; margin-bottom:16px; }
+  .slider-row label{ font-size:13px; font-weight:700; color:var(--text-muted); }
+  .slider-value{ font-family:var(--font-mono); font-size:13px; font-weight:700; color:var(--cyan); text-align:right; }
+  input[type="range"]{ -webkit-appearance:none; appearance:none; width:100%; height:5px; border-radius:999px; background:var(--bg-alt); outline:none; }
+  input[type="range"]::-webkit-slider-thumb{ -webkit-appearance:none; width:18px; height:18px; border-radius:50%; background:linear-gradient(135deg, var(--violet), var(--pink)); cursor:pointer; box-shadow:0 0 0 4px rgba(139,92,246,.18); }
+  input[type="range"]::-moz-range-thumb{ width:18px; height:18px; border:none; border-radius:50%; background:linear-gradient(135deg, var(--violet), var(--pink)); cursor:pointer; }
+  .toggle-row{ display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+  .toggle-switch{ position:relative; display:inline-block; width:42px; height:24px; flex-shrink:0; }
+  .toggle-switch input{ opacity:0; width:0; height:0; }
+  .toggle-slider{ position:absolute; inset:0; background:var(--bg-alt); border:1px solid var(--line-strong); border-radius:999px; transition:.2s; cursor:pointer; }
+  .toggle-slider::before{ content:''; position:absolute; width:16px; height:16px; left:3px; top:2px; background:var(--text-muted); border-radius:50%; transition:.2s; }
+  .toggle-switch input:checked + .toggle-slider{ background:var(--violet); border-color:var(--violet); }
+  .toggle-switch input:checked + .toggle-slider::before{ transform:translateX(18px); background:#fff; }
+  .toggle-row span{ font-size:13.5px; }
+
+  .processing-box{ text-align:center; background:var(--surface); border:1px solid var(--line); border-radius:var(--r-lg); padding:36px; }
+  .processing-box p{ color:var(--text-muted); font-size:14px; margin-bottom:16px; }
+  .progress-track{ height:6px; background:var(--bg-alt); border-radius:999px; overflow:hidden; max-width:320px; margin:0 auto; }
+  .progress-fill{ height:100%; width:30%; background:linear-gradient(90deg, var(--violet), var(--pink)); border-radius:999px; animation:progressSlide 1.2s ease-in-out infinite; }
+  @keyframes progressSlide{ 0%{ margin-left:-30%; } 100%{ margin-left:100%; } }
+
+  .result-card{ background:linear-gradient(160deg, rgba(139,92,246,.1), rgba(255,62,165,.06)); border:1px solid var(--line-strong); border-radius:var(--r-lg); padding:26px; }
+  .result-label{ font-family:var(--font-mono); font-size:13px; color:var(--cyan); font-weight:700; margin-bottom:14px; }
+  .result-actions{ display:flex; gap:12px; margin-top:18px; flex-wrap:wrap; }
+
+  .recent-list{ display:flex; flex-direction:column; gap:2px; }
+  .recent-item{ display:flex; align-items:center; gap:14px; padding:14px 0; border-top:1px solid var(--line); }
+  .recent-item:first-child{ border-top:none; }
+  .recent-icon{ width:36px; height:36px; border-radius:11px; background:rgba(139,92,246,.14); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .recent-text{ flex:1; display:flex; flex-direction:column; gap:2px; min-width:0; }
+  .recent-text strong{ font-family:var(--font-mono); font-size:13px; word-break:break-all; }
+  .recent-text small{ color:var(--text-muted); font-size:12px; }
+  .recent-empty{ color:var(--text-muted); font-size:13.5px; text-align:center; padding:20px 0; }
+
+  .chip{ font-family:var(--font-mono); font-size:11px; padding:5px 11px; border-radius:999px; border:1px solid var(--line-strong); color:var(--text-muted); }
+
+  /* TOAST */
+  .toast{ position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--surface-2); border:1px solid var(--line-strong); color:var(--text);
+    padding:13px 22px; border-radius:999px; font-size:13.5px; font-weight:600; opacity:0; pointer-events:none; transition:all .3s ease; z-index:200; box-shadow:var(--shadow-soft); max-width:90vw; text-align:center; }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  /* RESPONSIVE */
+  @media (max-width:960px){
+    .services-grid{ grid-template-columns:repeat(2,1fr); }
+    .preset-grid{ grid-template-columns:repeat(2,1fr); }
+  }
+  @media (max-width:860px){
+    .hero{ grid-template-columns:1fr; text-align:center; padding-top:40px; }
+    .hero-sub{ margin-left:auto; margin-right:auto; } .hero-cta{ justify-content:center; }
+    .hero-visual{ order:-1; margin-bottom:6px; }
+    .steps{ grid-template-columns:1fr 1fr; }
+    .nav-links{ display:none; }
+    .footer{ flex-direction:column; }
+    .slider-row{ grid-template-columns:1fr; gap:6px; }
+    .slider-value{ text-align:left; }
+  }
+  @media (max-width:520px){
+    .services-grid, .preset-grid{ grid-template-columns:1fr; }
+    .steps{ grid-template-columns:1fr; }
+    .nav{ padding:12px 16px; }
+    .otp-box{ width:36px; height:46px; font-size:17px; }
+  }
+</style>
+</head>
+<body data-view="home" data-authed="false" data-file-loaded="false">
+
+<div class="bg-fx" aria-hidden="true"></div>
+
+<nav class="nav">
+  <a href="#" class="logo" data-nav="view-home" dir="ltr" aria-label="Audio Converter, go to home">
+    <span class="eq-mark" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+    <span>AUDIO CONVERTER</span>
+  </a>
+  <div class="nav-links">
+    <a href="#services" data-nav="#services" data-i18n="nav_services">Services</a>
+    <a href="#presets" data-nav="#presets" data-i18n="nav_features">Features</a>
+    <a href="#how" data-nav="#how" data-i18n="nav_how">How It Works</a>
+    <a href="#" data-nav="view-contact" data-i18n="nav_contact">Contact</a>
+  </div>
+  <div class="nav-actions">
+    <div class="lang-toggle">
+      <button class="lang-btn is-active" data-lang="en">EN</button>
+      <button class="lang-btn" data-lang="ur">اردو</button>
+    </div>
+    <div class="nav-guest">
+      <button class="btn btn-ghost btn-sm" data-nav="view-login" data-i18n="nav_login">Log In</button>
+      <button class="btn btn-primary btn-sm" data-nav="view-signup" data-i18n="nav_signup">Sign Up</button>
+    </div>
+    <div class="nav-user">
+      <span class="nav-welcome"><span data-i18n="nav_welcome_prefix">Hi,</span> <strong id="nav-user-name">there</strong></span>
+      <button class="btn btn-ghost btn-sm" id="logout-btn" data-i18n="nav_logout">Log Out</button>
+    </div>
+  </div>
+</nav>
+
+<main id="main">
+
+  <!-- ============ HOME ============ -->
+  <section id="view-home" class="view active">
+
+    <section class="hero">
+      <div>
+        <span class="eyebrow" data-i18n="hero_eyebrow">FREE ONLINE AUDIO EFFECTS STUDIO</span>
+        <h1><span data-i18n="hero_h1_1">Convert Your Audio.</span><span class="accent" data-i18n="hero_h1_2">Instantly.</span></h1>
+        <p class="hero-sub" data-i18n="hero_sub">Slowed + reverb, 8D audio, bass boost, voice changer, noise removal and more — all processed right inside your browser. Free to download, no watermark.</p>
+        <div class="hero-cta">
+          <button class="btn btn-primary" data-nav="view-signup" data-i18n="hero_cta_primary">Create Free Account</button>
+          <button class="btn btn-ghost" data-nav="view-login" data-i18n="hero_cta_secondary">Log In</button>
+        </div>
+        <p class="hero-trust" data-i18n="hero_trust">No installation · No watermark · 100% free downloads</p>
+      </div>
+      <div class="hero-visual">
+        <div class="player-float">
+          <div class="player-tilt tilt" id="player-tilt">
+            <div class="player-card">
+              <div class="player-top">
+                <span class="eq-bars" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></span>
+                <span class="player-status" data-i18n="hero_visual_status">Now Converting</span>
+              </div>
+              <div class="player-file" dir="ltr">my_voice.mp3</div>
+              <div class="player-arrow" aria-hidden="true">↓</div>
+              <div class="player-result" dir="ltr">slowed_reverb.wav</div>
+              <div class="player-tags">
+                <span class="chip">Slowed+Reverb</span><span class="chip">Free</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="services">
+      <div class="section-head">
+        <span class="eyebrow" data-i18n="services_eyebrow">OUR SERVICES</span>
+        <h2 data-i18n="services_heading">Everything Your Audio Needs</h2>
+        <p data-i18n="services_sub">One free tool for effects, voice conversion, cleanup and unlimited downloads.</p>
+      </div>
+      <div class="services-grid">
+        <div class="service-card tilt">
+          <div class="icon-badge icon-badge--v"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3" y="14" width="3.5" height="7" rx="1" fill="#8B5CF6"/><rect x="10.2" y="8" width="3.5" height="13" rx="1" fill="#8B5CF6"/><rect x="17.5" y="4" width="3.5" height="17" rx="1" fill="#8B5CF6"/></svg></div>
+          <h3 data-i18n="service1_title">Effects &amp; Remixing</h3>
+          <p data-i18n="service1_desc">Slowed+reverb, nightcore, 8D, bass boost and full custom remix control.</p>
+        </div>
+        <div class="service-card tilt">
+          <div class="icon-badge icon-badge--p"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3z" stroke="#FF3EA5" stroke-width="1.6"/><path d="M6 11v1a6 6 0 0 0 12 0v-1M12 18v3" stroke="#FF3EA5" stroke-width="1.6" stroke-linecap="round"/></svg></div>
+          <h3 data-i18n="service2_title">Voice Conversion</h3>
+          <p data-i18n="service2_desc">Shift pitch between male and female voice presets in one click.</p>
+        </div>
+        <div class="service-card tilt">
+          <div class="icon-badge icon-badge--c"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 3l7 3v5c0 5-3.5 8-7 10-3.5-2-7-5-7-10V6l7-3z" stroke="#22D3EE" stroke-width="1.6"/></svg></div>
+          <h3 data-i18n="service3_title">Noise Cleanup</h3>
+          <p data-i18n="service3_desc">Reduce background hiss and low hum so vocals sound clearer.</p>
+        </div>
+        <div class="service-card tilt">
+          <div class="icon-badge icon-badge--v"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 3v12M8 8l4-4 4 4" stroke="#8B5CF6" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" stroke="#8B5CF6" stroke-width="1.6" stroke-linecap="round"/></svg></div>
+          <h3 data-i18n="service4_title">Free Downloads</h3>
+          <p data-i18n="service4_desc">Every processed file downloads free, in full quality, no watermark.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="presets">
+      <div class="section-head">
+        <span class="eyebrow" data-i18n="presets_showcase_eyebrow">EFFECTS LIBRARY</span>
+        <h2 data-i18n="presets_showcase_heading">11 Ways to Transform Your Sound</h2>
+        <p data-i18n="presets_showcase_sub">Every effect shows its exact setting — no hidden values.</p>
+      </div>
+      <div class="showcase-grid">
+        <div class="showcase-card"><h4 data-i18n="preset_slowed_reverb_name">Slowed + Reverb</h4><p data-i18n="preset_slowed_reverb_desc">0.8x speed with a lush 55% reverb wash.</p></div>
+        <div class="showcase-card"><h4 data-i18n="preset_slow_name">Slow Down</h4><p data-i18n="preset_slow_desc">Clean 0.75x playback speed, nothing else.</p></div>
+        <div class="showcase-card"><h4 data-i18n="preset_nightcore_name">Nightcore</h4><p data-i18n="preset_nightcore_desc">1.25x speed for that upbeat energy.</p></div>
+        <div class="showcase-card"><h4 data-i18n="preset_8d_name">8D Audio</h4><p data-i18n="preset_8d_desc">360° spatial motion plus 12% reverb.</p></div>
+        <div class="showcase-card"><h4 data-i18n="preset_bass_name">Bass Booster</h4><p data-i18n="preset_bass_desc">+11dB low-end boost, clearly labelled.</p></div>
+        <div class="showcase-card"><h4 data-i18n="preset_m2f_name">Male → Female Voice</h4><p data-i18n="preset_m2f_desc">+5 semitone pitch shift.</p></div>
+        <div class="showcase-card"><h4 data-i18n="preset_f2m_name">Female → Male Voice</h4><p data-i18n="preset_f2m_desc">−5 semitone pitch shift.</p></div>
+        <div class="showcase-card"><h4 data-i18n="preset_remix_name">Party Remix</h4><p data-i18n="preset_remix_desc">1.12x speed, +7dB bass, 20% reverb, 8D.</p></div>
+        <div class="showcase-card"><h4 data-i18n="preset_noise_name">Noise Removal</h4><p data-i18n="preset_noise_desc">60% hiss reduction plus a 90Hz hum filter.</p></div>
+        <div class="showcase-card"><h4 data-i18n="preset_echo_name">Echo</h4><p data-i18n="preset_echo_desc">Delay-based echo with 35% feedback.</p></div>
+        <div class="showcase-card"><h4 data-i18n="preset_vocal_name">Vocal Remover</h4><p data-i18n="preset_vocal_desc">Cancels centered vocals for karaoke (stereo files).</p></div>
+      </div>
+      <div class="showcase-cta"><button class="btn btn-primary" data-nav="view-signup" data-i18n="presets_showcase_cta">Try It Free</button></div>
+    </section>
+
+    <section class="section" id="how">
+      <div class="section-head">
+        <span class="eyebrow" data-i18n="how_eyebrow">THE PROCESS</span>
+        <h2 data-i18n="how_heading">Four Steps to Your New Sound</h2>
+      </div>
+      <div class="steps">
+        <div class="step"><div class="step-num">01</div><h4 data-i18n="how_step1_title">Sign Up</h4><p data-i18n="how_step1_desc">Create a free account with your email.</p></div>
+        <div class="step"><div class="step-num">02</div><h4 data-i18n="how_step2_title">Verify Email</h4><p data-i18n="how_step2_desc">Confirm the code sent to your inbox.</p></div>
+        <div class="step"><div class="step-num">03</div><h4 data-i18n="how_step3_title">Upload Audio</h4><p data-i18n="how_step3_desc">Drag in an MP3, WAV, M4A or OGG file.</p></div>
+        <div class="step"><div class="step-num">04</div><h4 data-i18n="how_step4_title">Pick &amp; Download</h4><p data-i18n="how_step4_desc">Choose an effect and download it free.</p></div>
+      </div>
+    </section>
+
+    <section class="section" style="padding-top:0;">
+      <div class="trust">
+        <span class="badge"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 3l7 3v5c0 5-3.5 8-7 10-3.5-2-7-5-7-10V6l7-3z" stroke="#9C93B5" stroke-width="1.6"/></svg><span data-i18n="trust_badge1">Runs 100% In Your Browser</span></span>
+        <span class="badge"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#9C93B5" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="trust_badge2">No Watermarks, Ever</span></span>
+        <span class="badge"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 3v12M8 8l4-4 4 4" stroke="#9C93B5" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" stroke="#9C93B5" stroke-width="1.6" stroke-linecap="round"/></svg><span data-i18n="trust_badge3">Always Free Downloads</span></span>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div>
+        <div class="logo" dir="ltr"><span class="eq-mark" aria-hidden="true"><span></span><span></span><span></span><span></span></span><span>AUDIO CONVERTER</span></div>
+        <p class="footer-tag" data-i18n="footer_tagline">A free audio effects studio that runs entirely in your browser.</p>
+      </div>
+      <div class="footer-links">
+        <a href="#services" data-nav="#services" data-i18n="footer_services_link">Services</a>
+        <a href="#" data-nav="view-policy" data-i18n="footer_policy_link">Privacy &amp; Policy</a>
+        <a href="#" data-nav="view-contact" data-i18n="footer_contact_link">Contact</a>
+      </div>
+      <div class="footer-contact">
+        <a href="https://wa.me/923327178633" target="_blank" rel="noopener" dir="ltr" style="color:inherit;">WhatsApp: +92 332 7178633</a>
+        <span dir="ltr">Email: [hello@audioconverter.com]</span>
+      </div>
+      <div class="footer-copy" data-i18n="footer_copyright">© 2026 Audio Converter. All rights reserved.</div>
+    </footer>
+  </section>
+
+  <!-- ============ POLICY ============ -->
+  <section id="view-policy" class="view">
+    <div class="page-shell">
+      <button class="btn-text back-btn" data-nav="view-home">← <span data-i18n="back_home">Back to Home</span></button>
+      <h2 data-i18n="policy_heading">Privacy Policy &amp; Terms</h2>
+      <p class="page-updated" dir="ltr" data-i18n="policy_updated">Last updated: July 2026</p>
+      <div class="policy-content">
+        <h3 data-i18n="policy_s1_title">1. How Your Audio Is Processed</h3>
+        <p data-i18n="policy_s1_body">Every effect on this site runs locally in your browser using Web Audio technology. Your audio files are never uploaded to a server — nothing leaves your device during processing.</p>
+        <h3 data-i18n="policy_s2_title">2. Account Information</h3>
+        <p data-i18n="policy_s2_body">This is currently a demo build: account details (name, email) exist only for the length of your browsing session and are not permanently stored on a server yet.</p>
+        <h3 data-i18n="policy_s3_title">3. Downloads</h3>
+        <p data-i18n="policy_s3_body">All processed audio downloads are completely free, with no watermark and no hidden charges — now and in the future.</p>
+        <h3 data-i18n="policy_s4_title">4. Google &amp; Facebook Sign-In</h3>
+        <p data-i18n="policy_s4_body">Social sign-in buttons are shown in demo mode. Real Google/Facebook authentication requires backend integration, which is not yet connected.</p>
+        <h3 data-i18n="policy_s5_title">5. Changes to This Policy</h3>
+        <p data-i18n="policy_s5_body">This page may be updated as the product develops. Continued use means you accept the current version.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CONTACT ============ -->
+  <section id="view-contact" class="view">
+    <div class="page-shell">
+      <button class="btn-text back-btn" data-nav="view-home">← <span data-i18n="back_home">Back to Home</span></button>
+      <h2 data-i18n="contact_heading">Get in Touch</h2>
+      <p class="page-updated" style="font-family:inherit; text-transform:none;" data-i18n="contact_sub">Questions, feedback or a feature request? Send us a message.</p>
+      <div class="contact-grid">
+        <form id="contact-form" class="contact-form" novalidate>
+          <div class="field"><label data-i18n="field_name">Full Name</label><input id="c-name" type="text" autocomplete="name"></div>
+          <div class="field"><label data-i18n="field_email">Email</label><input id="c-email" type="email" autocomplete="email"></div>
+          <div class="field"><label data-i18n="field_message">Message</label><textarea id="c-message" rows="5"></textarea></div>
+          <p class="form-error" id="c-error" role="alert"></p>
+          <button type="submit" class="btn btn-primary" id="c-submit" data-i18n="btn_send_message">Send Message</button>
+          <div class="contact-success hidden" id="contact-success">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#22D3EE" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <p data-i18n="contact_success_text">Message sent! We'll get back to you soon.</p>
+          </div>
+        </form>
+        <div class="contact-info">
+          <div class="info-row"><strong data-i18n="contact_whatsapp">WhatsApp</strong><a href="https://wa.me/923327178633" target="_blank" rel="noopener" dir="ltr" style="color:var(--cyan); font-weight:600;">+92 332 7178633</a></div>
+          <div class="info-row"><strong data-i18n="contact_email_label">Email</strong><span dir="ltr">[hello@audioconverter.com]</span></div>
+          <div class="info-row"><strong data-i18n="contact_hours">Support Hours</strong><span data-i18n="contact_hours_value">Daily, 9AM–10PM</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SIGN UP ============ -->
+  <section id="view-signup" class="view">
+    <div class="auth-shell">
+      <div class="auth-card">
+        <h2 data-i18n="signup_heading">Create Free Account</h2>
+        <p class="auth-sub" data-i18n="signup_sub">Takes less than a minute.</p>
+        <div class="oauth-row">
+          <button type="button" class="oauth-btn" id="su-google-btn">
+            <svg width="17" height="17" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.5 12.27c0-.85-.08-1.67-.22-2.45H12v4.63h6.46c-.28 1.5-1.13 2.77-2.4 3.62v3h3.88c2.27-2.09 3.56-5.17 3.56-8.8z"/><path fill="#34A853" d="M12 24c3.24 0 5.96-1.07 7.94-2.9l-3.88-3c-1.08.72-2.45 1.15-4.06 1.15-3.13 0-5.78-2.11-6.73-4.96H1.26v3.1C3.23 21.3 7.28 24 12 24z"/><path fill="#FBBC05" d="M5.27 14.29a7.2 7.2 0 0 1 0-4.58v-3.1H1.26a12 12 0 0 0 0 10.78l4.01-3.1z"/><path fill="#EA4335" d="M12 4.75c1.76 0 3.34.6 4.58 1.79l3.44-3.44C17.95 1.19 15.24 0 12 0 7.28 0 3.23 2.7 1.26 6.61l4.01 3.1C6.22 6.86 8.87 4.75 12 4.75z"/></svg>
+            <span data-i18n="btn_continue_google">Continue with Google</span>
+          </button>
+          <button type="button" class="oauth-btn" id="su-fb-btn">
+            <svg width="17" height="17" viewBox="0 0 24 24"><path fill="#1877F2" d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.95.93-1.95 1.89v2.26h3.32l-.53 3.49h-2.79V24C19.61 23.1 24 18.1 24 12.07z"/></svg>
+            <span data-i18n="btn_continue_fb">Continue with Facebook</span>
+          </button>
+        </div>
+        <div class="auth-divider"><span data-i18n="auth_divider_or">or</span></div>
+        <form id="signup-form" novalidate>
+          <div class="field"><label data-i18n="field_name">Full Name</label><input id="su-name" type="text" data-i18n-placeholder="ph_name" placeholder="Your full name" autocomplete="name"></div>
+          <div class="field"><label data-i18n="field_email">Email</label><input id="su-email" type="email" data-i18n-placeholder="ph_email" placeholder="you@example.com" autocomplete="email"></div>
+          <div class="field"><label data-i18n="field_password">Password</label><input id="su-pass" type="password" data-i18n-placeholder="ph_password" placeholder="At least 6 characters" autocomplete="new-password"></div>
+          <div class="field"><label data-i18n="field_confirm_password">Confirm Password</label><input id="su-pass2" type="password" data-i18n-placeholder="ph_confirm" placeholder="Re-enter password" autocomplete="new-password"></div>
+          <p class="form-error" id="su-error" role="alert"></p>
+          <button type="submit" class="btn btn-primary btn-block" id="su-submit" data-i18n="btn_create_account">Create Account</button>
+        </form>
+        <p class="auth-foot"><span data-i18n="auth_have_account">Already have an account?</span> <button class="btn-text" data-nav="view-login" data-i18n="btn_login_link">Log In</button></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ VERIFY EMAIL ============ -->
+  <section id="view-verify" class="view">
+    <div class="auth-shell">
+      <div class="auth-card">
+        <h2 data-i18n="verify_heading">Verify Your Email</h2>
+        <p class="auth-sub" id="verify-sub" dir="ltr"></p>
+        <div class="demo-banner">
+          <strong data-i18n="verify_demo_title">Demo Mode</strong>
+          <p data-i18n="verify_demo_note">This is a static demo with no email server connected, so we can't actually send you a code. Your code is shown below so you can test the flow.</p>
+          <div class="demo-code" id="demo-otp-code" dir="ltr">000000</div>
+        </div>
+        <div class="otp-row" id="otp-row">
+          <input class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" aria-label="Digit 1">
+          <input class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" aria-label="Digit 2">
+          <input class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" aria-label="Digit 3">
+          <input class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" aria-label="Digit 4">
+          <input class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" aria-label="Digit 5">
+          <input class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" aria-label="Digit 6">
+        </div>
+        <p class="form-error" id="otp-error" role="alert"></p>
+        <button class="btn btn-primary btn-block" id="otp-verify-btn" data-i18n="btn_verify">Verify &amp; Continue</button>
+        <p class="auth-foot"><button class="btn-text" id="otp-resend-btn" data-i18n="btn_resend">Resend Code</button></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ LOGIN ============ -->
+  <section id="view-login" class="view">
+    <div class="auth-shell">
+      <div class="auth-card">
+        <h2 data-i18n="login_heading">Welcome Back</h2>
+        <p class="auth-sub" data-i18n="login_sub">Log in to continue converting.</p>
+        <div class="oauth-row">
+          <button type="button" class="oauth-btn" id="li-google-btn">
+            <svg width="17" height="17" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.5 12.27c0-.85-.08-1.67-.22-2.45H12v4.63h6.46c-.28 1.5-1.13 2.77-2.4 3.62v3h3.88c2.27-2.09 3.56-5.17 3.56-8.8z"/><path fill="#34A853" d="M12 24c3.24 0 5.96-1.07 7.94-2.9l-3.88-3c-1.08.72-2.45 1.15-4.06 1.15-3.13 0-5.78-2.11-6.73-4.96H1.26v3.1C3.23 21.3 7.28 24 12 24z"/><path fill="#FBBC05" d="M5.27 14.29a7.2 7.2 0 0 1 0-4.58v-3.1H1.26a12 12 0 0 0 0 10.78l4.01-3.1z"/><path fill="#EA4335" d="M12 4.75c1.76 0 3.34.6 4.58 1.79l3.44-3.44C17.95 1.19 15.24 0 12 0 7.28 0 3.23 2.7 1.26 6.61l4.01 3.1C6.22 6.86 8.87 4.75 12 4.75z"/></svg>
+            <span data-i18n="btn_continue_google">Continue with Google</span>
+          </button>
+          <button type="button" class="oauth-btn" id="li-fb-btn">
+            <svg width="17" height="17" viewBox="0 0 24 24"><path fill="#1877F2" d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.95.93-1.95 1.89v2.26h3.32l-.53 3.49h-2.79V24C19.61 23.1 24 18.1 24 12.07z"/></svg>
+            <span data-i18n="btn_continue_fb">Continue with Facebook</span>
+          </button>
+        </div>
+        <div class="auth-divider"><span data-i18n="auth_divider_or">or</span></div>
+        <form id="login-form" novalidate>
+          <div class="field"><label data-i18n="field_email">Email</label><input id="li-email" type="email" data-i18n-placeholder="ph_email" placeholder="you@example.com" autocomplete="email"></div>
+          <div class="field"><label data-i18n="field_password">Password</label><input id="li-pass" type="password" data-i18n-placeholder="ph_password_login" placeholder="Your password" autocomplete="current-password"></div>
+          <p class="form-error" id="li-error" role="alert"></p>
+          <button type="submit" class="btn btn-primary btn-block" data-i18n="btn_login">Log In</button>
+        </form>
+        <div class="auth-divider"><span data-i18n="auth_divider_or">or</span></div>
+        <button class="btn btn-ghost btn-block" id="demo-login" data-i18n="btn_demo_login">Try Demo Account</button>
+        <p class="auth-foot"><span data-i18n="auth_no_account">New here?</span> <button class="btn-text" data-nav="view-signup" data-i18n="btn_signup_link">Create Account</button></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ DASHBOARD ============ -->
+  <section id="view-dashboard" class="view">
+    <div class="dash">
+      <div>
+        <h2 class="dash-title"><span data-i18n="dash_welcome_prefix">Welcome,</span> <span id="dash-name">there</span></h2>
+        <p class="dash-sub" data-i18n="dash_sub">Upload audio and pick an effect to get started.</p>
+      </div>
+
+      <div class="upload-zone" id="upload-zone">
+        <input type="file" id="file-input" accept="audio/*" class="visually-hidden">
+        <div id="upload-empty">
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none"><path d="M12 3v12M8 8l4-4 4 4" stroke="#9C93B5" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" stroke="#9C93B5" stroke-width="1.6" stroke-linecap="round"/></svg>
+          <p data-i18n="upload_drag_text">Drag &amp; drop your audio file here</p>
+          <p class="upload-or" data-i18n="upload_or">or</p>
+          <button class="btn btn-primary" id="browse-btn" data-i18n="upload_browse_btn">Browse Files</button>
+          <p class="upload-hint" data-i18n="upload_hint">MP3, WAV, M4A, OGG — up to 25MB</p>
+        </div>
+        <div id="upload-loaded" class="hidden">
+          <div class="file-info">
+            <div>
+              <div class="file-name" id="upload-filename" dir="ltr"></div>
+              <div class="file-meta" id="upload-duration" dir="ltr"></div>
+            </div>
+            <button class="btn btn-ghost btn-sm" id="change-file-btn" data-i18n="upload_change">Change File</button>
+          </div>
+          <canvas id="waveform-canvas" class="waveform-canvas"></canvas>
+          <audio id="original-player" controls class="audio-player"></audio>
+        </div>
+        <div id="upload-loading" class="hidden">
+          <div class="spinner"></div>
+          <p data-i18n="upload_loading_text">Reading your audio...</p>
+        </div>
+      </div>
+      <p class="form-error" id="upload-error" role="alert"></p>
+
+      <div class="dash-section">
+        <div class="mode-tabs" role="tablist">
+          <button type="button" class="mode-tab is-active" data-mode="auto" data-i18n="mode_auto">⚡ Auto Adjust</button>
+          <button type="button" class="mode-tab" data-mode="manual" data-i18n="mode_manual">🎛 Manual Control</button>
+        </div>
+
+        <div class="mode-panel" id="mode-auto-panel">
+          <div class="auto-card">
+            <h3 data-i18n="auto_heading">Auto Enhance</h3>
+            <p class="dash-section-sub" data-i18n="auto_sub">We scan your file's loudness and noise level, then work out the right correction for you — every detected number is shown before you apply it.</p>
+            <button type="button" class="btn btn-ghost" id="analyze-btn" data-i18n="btn_analyze">Analyze My Audio</button>
+            <div class="auto-results hidden" id="auto-results">
+              <div class="auto-row"><span data-i18n="auto_peak_label">Peak Level Detected</span><strong id="auto-peak-value" dir="ltr">—</strong></div>
+              <div class="auto-row"><span data-i18n="auto_gain_label">Auto Volume Adjustment</span><strong id="auto-gain-value" dir="ltr">—</strong></div>
+              <div class="auto-row"><span data-i18n="auto_noise_label">Detected Noise Floor</span><strong id="auto-noise-floor-value" dir="ltr">—</strong></div>
+              <div class="auto-row"><span data-i18n="auto_noise_apply_label">Noise Reduction To Apply</span><strong id="auto-noise-apply-value" dir="ltr">—</strong></div>
+              <div class="auto-row"><span data-i18n="auto_bass_label">Warmth (Bass) Added</span><strong id="auto-bass-value" dir="ltr">—</strong></div>
+              <button type="button" class="btn btn-primary btn-block" id="apply-auto-btn" data-i18n="btn_apply_auto">Apply Auto Enhance</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="mode-panel hidden" id="mode-manual-panel">
+          <div class="dash-section" style="margin-top:0;">
+            <h3 data-i18n="dash_presets_heading">Quick Effects</h3>
+            <p class="dash-section-sub" data-i18n="dash_presets_sub">Every card shows the exact setting it applies.</p>
+            <div class="preset-grid" id="preset-grid"></div>
+          </div>
+
+          <div class="dash-section">
+            <h3 data-i18n="dash_remix_heading">Custom Remix Studio</h3>
+            <p class="dash-section-sub" data-i18n="dash_remix_sub">Fine-tune every setting yourself — live values shown as you drag.</p>
+            <div class="remix-panel">
+              <div class="slider-row">
+                <label data-i18n="slider_speed_label">Speed</label>
+                <input type="range" id="slider-speed" min="0.5" max="2" step="0.05" value="1">
+                <span class="slider-value" id="val-speed" dir="ltr">1.00x</span>
+              </div>
+              <div class="slider-row">
+                <label data-i18n="slider_pitch_label">Pitch</label>
+                <input type="range" id="slider-pitch" min="-12" max="12" step="1" value="0">
+                <span class="slider-value" id="val-pitch" dir="ltr">0 st</span>
+              </div>
+              <div class="slider-row">
+                <label data-i18n="slider_bass_label">Bass Boost</label>
+                <input type="range" id="slider-bass" min="0" max="15" step="1" value="0">
+                <span class="slider-value" id="val-bass" dir="ltr">0 dB</span>
+              </div>
+              <div class="slider-row">
+                <label data-i18n="slider_reverb_label">Reverb</label>
+                <input type="range" id="slider-reverb" min="0" max="100" step="5" value="0">
+                <span class="slider-value" id="val-reverb" dir="ltr">0%</span>
+              </div>
+              <div class="slider-row">
+                <label data-i18n="slider_noise_label">Noise Removal</label>
+                <input type="range" id="slider-noise" min="0" max="100" step="5" value="0">
+                <span class="slider-value" id="val-noise" dir="ltr">0%</span>
+              </div>
+              <div class="toggle-row"><label class="toggle-switch"><input type="checkbox" id="toggle-echo"><span class="toggle-slider"></span></label><span data-i18n="toggle_echo_label">Echo</span></div>
+              <div class="toggle-row"><label class="toggle-switch"><input type="checkbox" id="toggle-8d"><span class="toggle-slider"></span></label><span data-i18n="toggle_8d_label">8D Motion</span></div>
+              <div class="toggle-row"><label class="toggle-switch"><input type="checkbox" id="toggle-reverse"><span class="toggle-slider"></span></label><span data-i18n="toggle_reverse_label">Reverse Audio</span></div>
+              <div class="toggle-row"><label class="toggle-switch"><input type="checkbox" id="toggle-vocal-remove"><span class="toggle-slider"></span></label><span data-i18n="toggle_vocal_label">Vocal Remover</span></div>
+              <button type="button" class="btn btn-primary btn-block" id="apply-remix-btn" data-i18n="btn_apply_remix">Apply Custom Remix</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dash-section hidden" id="processing-section">
+        <div class="processing-box">
+          <div class="spinner"></div>
+          <p data-i18n="processing_text">Processing your audio — this only takes a moment...</p>
+          <div class="progress-track"><div class="progress-fill"></div></div>
+        </div>
+      </div>
+
+      <div class="dash-section hidden" id="result-section">
+        <h3 data-i18n="result_heading">Your Audio Is Ready!</h3>
+        <div class="result-card">
+          <div class="result-label" id="result-effect-name"></div>
+          <audio id="result-player" controls class="audio-player"></audio>
+          <div class="result-actions">
+            <a class="btn btn-primary" id="download-btn" download data-i18n="btn_download_free">Download Free</a>
+            <button class="btn btn-ghost" id="try-another-btn" data-i18n="btn_try_another">Try Another Effect</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="dash-section">
+        <h3 data-i18n="recent_heading">Recent Conversions</h3>
+        <ul id="recent-list" class="recent-list"></ul>
+        <p class="recent-empty" id="recent-empty" data-i18n="recent_empty">No conversions yet — try an effect above!</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(function(){
+  'use strict';
+
+  /* ================= I18N ================= */
+  const I18N = {
+    en: {
+      nav_services:'Services', nav_features:'Features', nav_how:'How It Works', nav_contact:'Contact',
+      nav_login:'Log In', nav_signup:'Sign Up', nav_welcome_prefix:'Hi,', nav_logout:'Log Out',
+      hero_eyebrow:'FREE ONLINE AUDIO EFFECTS STUDIO', hero_h1_1:'Convert Your Audio.', hero_h1_2:'Instantly.',
+      hero_sub:"Slowed + reverb, 8D audio, bass boost, voice changer, noise removal and more — all processed right inside your browser. Free to download, no watermark.",
+      hero_cta_primary:'Create Free Account', hero_cta_secondary:'Log In', hero_trust:'No installation · No watermark · 100% free downloads',
+      hero_visual_status:'Now Converting',
+      services_eyebrow:'OUR SERVICES', services_heading:'Everything Your Audio Needs', services_sub:'One free tool for effects, voice conversion, cleanup and unlimited downloads.',
+      service1_title:'Effects & Remixing', service1_desc:'Slowed+reverb, nightcore, 8D, bass boost and full custom remix control.',
+      service2_title:'Voice Conversion', service2_desc:'Shift pitch between male and female voice presets in one click.',
+      service3_title:'Noise Cleanup', service3_desc:'Reduce background hiss and low hum so vocals sound clearer.',
+      service4_title:'Free Downloads', service4_desc:'Every processed file downloads free, in full quality, no watermark.',
+      presets_showcase_eyebrow:'EFFECTS LIBRARY', presets_showcase_heading:'11 Ways to Transform Your Sound', presets_showcase_sub:'Every effect shows its exact setting — no hidden values.',
+      presets_showcase_cta:'Try It Free',
+      how_eyebrow:'THE PROCESS', how_heading:'Four Steps to Your New Sound',
+      how_step1_title:'Sign Up', how_step1_desc:'Create a free account with your email.',
+      how_step2_title:'Verify Email', how_step2_desc:'Confirm the code sent to your inbox.',
+      how_step3_title:'Upload Audio', how_step3_desc:'Drag in an MP3, WAV, M4A or OGG file.',
+      how_step4_title:'Pick & Download', how_step4_desc:'Choose an effect and download it free.',
+      trust_badge1:'Runs 100% In Your Browser', trust_badge2:'No Watermarks, Ever', trust_badge3:'Always Free Downloads',
+      footer_tagline:'A free audio effects studio that runs entirely in your browser.',
+      footer_services_link:'Services', footer_policy_link:'Privacy & Policy', footer_contact_link:'Contact',
+      footer_copyright:'© 2026 Audio Converter. All rights reserved.',
+      back_home:'Back to Home',
+      policy_heading:'Privacy Policy & Terms', policy_updated:'Last updated: July 2026',
+      policy_s1_title:'1. How Your Audio Is Processed', policy_s1_body:'Every effect on this site runs locally in your browser using Web Audio technology. Your audio files are never uploaded to a server — nothing leaves your device during processing.',
+      policy_s2_title:'2. Account Information', policy_s2_body:'This is currently a demo build: account details (name, email) exist only for the length of your browsing session and are not permanently stored on a server yet.',
+      policy_s3_title:'3. Downloads', policy_s3_body:'All processed audio downloads are completely free, with no watermark and no hidden charges — now and in the future.',
+      policy_s4_title:'4. Google & Facebook Sign-In', policy_s4_body:'Social sign-in buttons are shown in demo mode. Real Google/Facebook authentication requires backend integration, which is not yet connected.',
+      policy_s5_title:'5. Changes to This Policy', policy_s5_body:'This page may be updated as the product develops. Continued use means you accept the current version.',
+      contact_heading:'Get in Touch', contact_sub:'Questions, feedback or a feature request? Send us a message.',
+      field_name:'Full Name', field_email:'Email', field_message:'Message', btn_send_message:'Send Message', btn_sending:'Sending...',
+      contact_success_text:"Message sent! We'll get back to you soon.",
+      contact_whatsapp:'WhatsApp', contact_email_label:'Email', contact_hours:'Support Hours', contact_hours_value:'Daily, 9AM–10PM',
+      signup_heading:'Create Free Account', signup_sub:'Takes less than a minute.',
+      btn_continue_google:'Continue with Google', btn_continue_fb:'Continue with Facebook', auth_divider_or:'or',
+      field_password:'Password', field_confirm_password:'Confirm Password',
+      ph_name:'Your full name', ph_email:'you@example.com', ph_password:'At least 6 characters', ph_confirm:'Re-enter password',
+      btn_create_account:'Create Account', btn_creating:'Creating...', auth_have_account:'Already have an account?', btn_login_link:'Log In',
+      verify_heading:'Verify Your Email', verify_sub_prefix:'We sent a 6-digit code to',
+      verify_demo_title:'Demo Mode', verify_demo_note:"This is a static demo with no email server connected, so we can't actually send you a code. Your code is shown below so you can test the flow.",
+      btn_verify:'Verify & Continue', btn_resend:'Resend Code',
+      login_heading:'Welcome Back', login_sub:'Log in to continue converting.', ph_password_login:'Your password',
+      btn_login:'Log In', btn_demo_login:'Try Demo Account', auth_no_account:'New here?', btn_signup_link:'Create Account',
+      dash_welcome_prefix:'Welcome,', dash_sub:'Upload audio and pick an effect to get started.',
+      upload_drag_text:'Drag & drop your audio file here', upload_or:'or', upload_browse_btn:'Browse Files',
+      upload_hint:'MP3, WAV, M4A, OGG — up to 25MB', upload_change:'Change File', upload_loading_text:'Reading your audio...',
+      mode_auto:'⚡ Auto Adjust', mode_manual:'🎛 Manual Control',
+      auto_heading:'Auto Enhance', auto_sub:"We scan your file's loudness and noise level, then work out the right correction for you — every detected number is shown before you apply it.",
+      btn_analyze:'Analyze My Audio', btn_apply_auto:'Apply Auto Enhance', auto_result_label:'Auto Enhance',
+      auto_peak_label:'Peak Level Detected', auto_gain_label:'Auto Volume Adjustment',
+      auto_noise_label:'Detected Noise Floor', auto_noise_apply_label:'Noise Reduction To Apply', auto_bass_label:'Warmth (Bass) Added',
+      dash_presets_heading:'Quick Effects', dash_presets_sub:'Every card shows the exact setting it applies.',
+      dash_remix_heading:'Custom Remix Studio', dash_remix_sub:'Fine-tune every setting yourself — live values shown as you drag.',
+      slider_speed_label:'Speed', slider_pitch_label:'Pitch', slider_bass_label:'Bass Boost', slider_reverb_label:'Reverb', slider_noise_label:'Noise Removal',
+      toggle_echo_label:'Echo', toggle_8d_label:'8D Motion', toggle_reverse_label:'Reverse Audio', toggle_vocal_label:'Vocal Remover',
+      btn_apply_remix:'Apply Custom Remix', processing_text:'Processing your audio — this only takes a moment...',
+      result_heading:'Your Audio Is Ready!', btn_download_free:'Download Free', btn_try_another:'Try Another Effect',
+      recent_heading:'Recent Conversions', recent_empty:'No conversions yet — try an effect above!', remix_result_label:'Custom Remix',
+      preset_slowed_reverb_name:'Slowed + Reverb', preset_slowed_reverb_desc:'0.8x speed with a lush 55% reverb wash.',
+      preset_slow_name:'Slow Down', preset_slow_desc:'Clean 0.75x playback speed, nothing else.',
+      preset_nightcore_name:'Nightcore', preset_nightcore_desc:'1.25x speed for that upbeat energy.',
+      preset_8d_name:'8D Audio', preset_8d_desc:'360° spatial motion plus 12% reverb.',
+      preset_bass_name:'Bass Booster', preset_bass_desc:'+11dB low-end boost, clearly labelled.',
+      preset_m2f_name:'Male → Female Voice', preset_m2f_desc:'+5 semitone pitch shift.',
+      preset_f2m_name:'Female → Male Voice', preset_f2m_desc:'−5 semitone pitch shift.',
+      preset_remix_name:'Party Remix', preset_remix_desc:'1.12x speed, +7dB bass, 20% reverb, 8D.',
+      preset_noise_name:'Noise Removal', preset_noise_desc:'60% hiss reduction plus a 90Hz hum filter.',
+      preset_echo_name:'Echo', preset_echo_desc:'Delay-based echo with 35% feedback.',
+      preset_vocal_name:'Vocal Remover', preset_vocal_desc:'Cancels centered vocals for karaoke (stereo files).',
+      err_fill_all:'Please fill in all fields.', err_invalid_email:'Please enter a valid email address.',
+      err_password_short:'Password must be at least 6 characters.', err_password_mismatch:"Passwords don't match.",
+      err_email_registered:'This email is already registered.', err_login_invalid:"That email or password doesn't match our records.",
+      err_otp_incomplete:'Enter all 6 digits.', err_otp_wrong:'That code is incorrect. Please try again.',
+      toast_verified:'Email verified! Welcome aboard.', toast_otp_resent:'A new demo code has been generated.',
+      toast_oauth_connecting:'Connecting to', toast_oauth_success:'Signed in with', toast_upload_first:'Upload an audio file first.',
+      toast_stereo_required:'This effect needs a stereo audio file.', toast_processing_error:'Something went wrong while processing. Try a different file.',
+      toast_file_loaded:'Audio loaded — pick an effect below.',
+      toast_playback_error:'This browser could not play that audio file directly. Try downloading it instead.'
+    },
+    ur: {
+      nav_services:'سروسز', nav_features:'فیچرز', nav_how:'کیسے کام کرتا ہے', nav_contact:'رابطہ',
+      nav_login:'لاگ ان', nav_signup:'سائن اپ', nav_welcome_prefix:'ہیلو،', nav_logout:'لاگ آؤٹ',
+      hero_eyebrow:'مفت آن لائن آڈیو ایفیکٹس اسٹوڈیو', hero_h1_1:'اپنا آڈیو بدلیں۔', hero_h1_2:'فوراً۔',
+      hero_sub:'سلوڈ + ریوَرب، 8D آڈیو، بیس بوسٹ، وائس چینجر، نوائز ریموول اور بہت کچھ — سب کچھ آپ کے براؤزر کے اندر پراسیس ہوتا ہے۔ بالکل مفت ڈاؤن لوڈ، کوئی واٹرمارک نہیں۔',
+      hero_cta_primary:'مفت اکاؤنٹ بنائیں', hero_cta_secondary:'لاگ ان کریں', hero_trust:'کوئی انسٹالیشن نہیں · کوئی واٹرمارک نہیں · 100% مفت ڈاؤن لوڈ',
+      hero_visual_status:'کنورٹ ہو رہا ہے',
+      services_eyebrow:'ہماری سروسز', services_heading:'آپ کے آڈیو کی ہر ضرورت', services_sub:'ایفیکٹس، وائس کنورژن، صفائی اور لامحدود ڈاؤن لوڈز کے لیے ایک مفت ٹول۔',
+      service1_title:'ایفیکٹس اور ریمکس', service1_desc:'سلوڈ+ریوَرب، نائٹ کور، 8D، بیس بوسٹ اور مکمل کسٹم ریمکس کنٹرول۔',
+      service2_title:'وائس کنورژن', service2_desc:'ایک کلک میں مرد اور عورت کی آواز کے درمیان پچ بدلیں۔',
+      service3_title:'نوائز کلین اپ', service3_desc:'بیک گراؤنڈ ہس اور ہلکی گونج کم کریں تاکہ آواز صاف رہے۔',
+      service4_title:'مفت ڈاؤن لوڈز', service4_desc:'ہر پراسیس شدہ فائل مفت، پوری کوالٹی میں، بغیر واٹرمارک کے ڈاؤن لوڈ ہوتی ہے۔',
+      presets_showcase_eyebrow:'ایفیکٹس لائبریری', presets_showcase_heading:'آپ کی آواز بدلنے کے 11 طریقے', presets_showcase_sub:'ہر ایفیکٹ اپنی صحیح ویلیو دکھاتا ہے — کچھ بھی چھپا نہیں۔',
+      presets_showcase_cta:'مفت آزمائیں',
+      how_eyebrow:'طریقہ کار', how_heading:'نئی آواز کے چار قدم',
+      how_step1_title:'سائن اپ کریں', how_step1_desc:'اپنی ای میل سے مفت اکاؤنٹ بنائیں۔',
+      how_step2_title:'ای میل تصدیق کریں', how_step2_desc:'اپنے ان باکس میں آیا کوڈ تصدیق کریں۔',
+      how_step3_title:'آڈیو اپ لوڈ کریں', how_step3_desc:'MP3، WAV، M4A یا OGG فائل ڈالیں۔',
+      how_step4_title:'چنیں اور ڈاؤن لوڈ کریں', how_step4_desc:'ایفیکٹ چنیں اور مفت ڈاؤن لوڈ کریں۔',
+      trust_badge1:'100% آپ کے براؤزر میں چلتا ہے', trust_badge2:'کبھی کوئی واٹرمارک نہیں', trust_badge3:'ہمیشہ مفت ڈاؤن لوڈ',
+      footer_tagline:'ایک مفت آڈیو ایفیکٹس اسٹوڈیو جو مکمل طور پر آپ کے براؤزر میں چلتا ہے۔',
+      footer_services_link:'سروسز', footer_policy_link:'پرائیویسی اور پالیسی', footer_contact_link:'رابطہ',
+      footer_copyright:'© 2026 آڈیو کنورٹر۔ جملہ حقوق محفوظ ہیں۔',
+      back_home:'ہوم پر واپس جائیں',
+      policy_heading:'پرائیویسی پالیسی اور شرائط', policy_updated:'آخری اپ ڈیٹ: جولائی 2026',
+      policy_s1_title:'1۔ آپ کا آڈیو کیسے پراسیس ہوتا ہے', policy_s1_body:'اس سائٹ کا ہر ایفیکٹ Web Audio ٹیکنالوجی سے آپ کے براؤزر میں ہی چلتا ہے۔ آپ کی آڈیو فائلیں کبھی سرور پر اپ لوڈ نہیں ہوتیں — پراسیسنگ کے دوران کچھ بھی آپ کے ڈیوائس سے باہر نہیں جاتا۔',
+      policy_s2_title:'2۔ اکاؤنٹ کی معلومات', policy_s2_body:'یہ فی الحال ایک ڈیمو بلڈ ہے: اکاؤنٹ کی تفصیلات (نام، ای میل) صرف آپ کے براؤزنگ سیشن تک محدود ہیں اور ابھی مستقل طور پر کسی سرور پر محفوظ نہیں ہوتیں۔',
+      policy_s3_title:'3۔ ڈاؤن لوڈز', policy_s3_body:'ہر پراسیس شدہ آڈیو ڈاؤن لوڈ بالکل مفت ہے، بغیر واٹرمارک اور بغیر چھپے چارجز کے — ابھی بھی اور آئندہ بھی۔',
+      policy_s4_title:'4۔ گوگل اور فیس بک سائن ان', policy_s4_body:'سوشل سائن ان بٹن ڈیمو موڈ میں دکھائے گئے ہیں۔ اصل گوگل/فیس بک تصدیق کے لیے بیک اینڈ انضمام درکار ہے جو ابھی کنیکٹ نہیں ہے۔',
+      policy_s5_title:'5۔ اس پالیسی میں تبدیلیاں', policy_s5_body:'یہ صفحہ پروڈکٹ کی ترقی کے ساتھ اپ ڈیٹ ہو سکتا ہے۔ استعمال جاری رکھنے کا مطلب موجودہ ورژن کی منظوری ہے۔',
+      contact_heading:'ہم سے رابطہ کریں', contact_sub:'سوال، رائے یا کوئی نیا فیچر چاہیے؟ ہمیں پیغام بھیجیں۔',
+      field_name:'پورا نام', field_email:'ای میل', field_message:'پیغام', btn_send_message:'پیغام بھیجیں', btn_sending:'بھیجا جا رہا ہے...',
+      contact_success_text:'پیغام بھیج دیا گیا! ہم جلد رابطہ کریں گے۔',
+      contact_whatsapp:'واٹس ایپ', contact_email_label:'ای میل', contact_hours:'سپورٹ کے اوقات', contact_hours_value:'روزانہ، صبح 9 تا رات 10',
+      signup_heading:'مفت اکاؤنٹ بنائیں', signup_sub:'ایک منٹ سے بھی کم وقت لگے گا۔',
+      btn_continue_google:'گوگل سے جاری رکھیں', btn_continue_fb:'فیس بک سے جاری رکھیں', auth_divider_or:'یا',
+      field_password:'پاسورڈ', field_confirm_password:'پاسورڈ کی تصدیق',
+      ph_name:'آپ کا پورا نام', ph_email:'you@example.com', ph_password:'کم از کم 6 حروف', ph_confirm:'پاسورڈ دوبارہ لکھیں',
+      btn_create_account:'اکاؤنٹ بنائیں', btn_creating:'بن رہا ہے...', auth_have_account:'پہلے سے اکاؤنٹ ہے؟', btn_login_link:'لاگ ان کریں',
+      verify_heading:'اپنی ای میل تصدیق کریں', verify_sub_prefix:'ہم نے 6 ہندسوں کا کوڈ بھیجا ہے',
+      verify_demo_title:'ڈیمو موڈ', verify_demo_note:'یہ ایک اسٹیٹک ڈیمو ہے جس سے کوئی ای میل سرور منسلک نہیں، اس لیے ہم اصل میں آپ کو کوڈ نہیں بھیج سکتے۔ آپ کا کوڈ نیچے دکھایا گیا ہے تاکہ آپ یہ عمل آزما سکیں۔',
+      btn_verify:'تصدیق کریں اور جاری رکھیں', btn_resend:'کوڈ دوبارہ بھیجیں',
+      login_heading:'خوش آمدید', login_sub:'کنورٹ کرنا جاری رکھنے کے لیے لاگ ان کریں۔', ph_password_login:'آپ کا پاسورڈ',
+      btn_login:'لاگ ان کریں', btn_demo_login:'ڈیمو اکاؤنٹ آزمائیں', auth_no_account:'نئے ہیں؟', btn_signup_link:'اکاؤنٹ بنائیں',
+      dash_welcome_prefix:'خوش آمدید،', dash_sub:'شروع کرنے کے لیے آڈیو اپ لوڈ کریں اور ایک ایفیکٹ چنیں۔',
+      upload_drag_text:'اپنی آڈیو فائل یہاں ڈریگ اینڈ ڈراپ کریں', upload_or:'یا', upload_browse_btn:'فائلیں براؤز کریں',
+      upload_hint:'MP3، WAV، M4A، OGG — 25MB تک', upload_change:'فائل تبدیل کریں', upload_loading_text:'آپ کا آڈیو پڑھا جا رہا ہے...',
+      mode_auto:'⚡ آٹو ایڈجسٹ', mode_manual:'🎛 مینوئل کنٹرول',
+      auto_heading:'آٹو اینہانس', auto_sub:'ہم آپ کی فائل کا لاؤڈنس اور نوائز لیول چیک کرتے ہیں، پھر آپ کے لیے صحیح تصحیح طے کرتے ہیں — اپلائی کرنے سے پہلے ہر معلوم نمبر دکھایا جاتا ہے۔',
+      btn_analyze:'میرا آڈیو تجزیہ کریں', btn_apply_auto:'آٹو اینہانس اپلائی کریں', auto_result_label:'آٹو اینہانس',
+      auto_peak_label:'معلوم پیک لیول', auto_gain_label:'خودکار والیوم ایڈجسٹمنٹ',
+      auto_noise_label:'معلوم نوائز فلور', auto_noise_apply_label:'لگائی جانے والی نوائز ریڈکشن', auto_bass_label:'شامل کی گئی وارمتھ (بیس)',
+      dash_presets_heading:'فوری ایفیکٹس', dash_presets_sub:'ہر کارڈ اپنی صحیح سیٹنگ دکھاتا ہے۔',
+      dash_remix_heading:'کسٹم ریمکس اسٹوڈیو', dash_remix_sub:'خود ہر سیٹنگ ایڈجسٹ کریں — ڈریگ کرتے وقت لائیو ویلیو نظر آئے گی۔',
+      slider_speed_label:'اسپیڈ', slider_pitch_label:'پچ', slider_bass_label:'بیس بوسٹ', slider_reverb_label:'ریوَرب', slider_noise_label:'نوائز ریموول',
+      toggle_echo_label:'ایکو', toggle_8d_label:'8D موشن', toggle_reverse_label:'آڈیو ریورس', toggle_vocal_label:'ووکل ریموور',
+      btn_apply_remix:'کسٹم ریمکس اپلائی کریں', processing_text:'آپ کا آڈیو پراسیس ہو رہا ہے — بس ایک لمحہ...',
+      result_heading:'آپ کا آڈیو تیار ہے!', btn_download_free:'مفت ڈاؤن لوڈ کریں', btn_try_another:'دوسرا ایفیکٹ آزمائیں',
+      recent_heading:'حالیہ کنورژنز', recent_empty:'ابھی تک کوئی کنورژن نہیں — اوپر کوئی ایفیکٹ آزمائیں!', remix_result_label:'کسٹم ریمکس',
+      preset_slowed_reverb_name:'سلوڈ + ریوَرب', preset_slowed_reverb_desc:'0.8x اسپیڈ کے ساتھ گہرا 55% ریوَرب۔',
+      preset_slow_name:'سلو ڈاؤن', preset_slow_desc:'صاف 0.75x پلے بیک اسپیڈ، اور کچھ نہیں۔',
+      preset_nightcore_name:'نائٹ کور', preset_nightcore_desc:'اس پرجوش انداز کے لیے 1.25x اسپیڈ۔',
+      preset_8d_name:'8D آڈیو', preset_8d_desc:'360° اسپیشل موومنٹ کے ساتھ 12% ریوَرب۔',
+      preset_bass_name:'بیس بوسٹر', preset_bass_desc:'واضح طور پر بتایا گیا +11dB لو-اینڈ بوسٹ۔',
+      preset_m2f_name:'مرد سے عورت کی آواز', preset_m2f_desc:'+5 سیمی ٹون پچ شفٹ۔',
+      preset_f2m_name:'عورت سے مرد کی آواز', preset_f2m_desc:'−5 سیمی ٹون پچ شفٹ۔',
+      preset_remix_name:'پارٹی ریمکس', preset_remix_desc:'1.12x اسپیڈ، +7dB بیس، 20% ریوَرب، 8D۔',
+      preset_noise_name:'نوائز ریموول', preset_noise_desc:'60% ہس کمی کے ساتھ 90Hz ہم فلٹر۔',
+      preset_echo_name:'ایکو', preset_echo_desc:'35% فیڈ بیک کے ساتھ ڈیلے پر مبنی ایکو۔',
+      preset_vocal_name:'ووکل ریموور', preset_vocal_desc:'کریوکی کے لیے درمیانی آواز ہٹاتا ہے (صرف اسٹیریو فائلز)۔',
+      err_fill_all:'براہ کرم تمام خانے پُر کریں۔', err_invalid_email:'براہ کرم درست ای میل درج کریں۔',
+      err_password_short:'پاسورڈ کم از کم 6 حروف کا ہونا چاہیے۔', err_password_mismatch:'پاسورڈز مماثل نہیں ہیں۔',
+      err_email_registered:'یہ ای میل پہلے سے رجسٹرڈ ہے۔', err_login_invalid:'یہ ای میل یا پاسورڈ ہمارے ریکارڈ سے میل نہیں کھاتا۔',
+      err_otp_incomplete:'تمام 6 ہندسے درج کریں۔', err_otp_wrong:'یہ کوڈ غلط ہے۔ دوبارہ کوشش کریں۔',
+      toast_verified:'ای میل تصدیق ہو گئی! خوش آمدید۔', toast_otp_resent:'ایک نیا ڈیمو کوڈ بن گیا ہے۔',
+      toast_oauth_connecting:'رابطہ ہو رہا ہے', toast_oauth_success:'کامیابی سے لاگ ان ہوا', toast_upload_first:'پہلے ایک آڈیو فائل اپ لوڈ کریں۔',
+      toast_stereo_required:'اس ایفیکٹ کے لیے اسٹیریو آڈیو فائل درکار ہے۔', toast_processing_error:'پراسیسنگ میں مسئلہ ہوا۔ کوئی دوسری فائل آزمائیں۔',
+      toast_file_loaded:'آڈیو لوڈ ہو گیا — نیچے ایک ایفیکٹ چنیں۔',
+      toast_playback_error:'یہ براؤزر اس آڈیو فائل کو براہ راست نہیں چلا سکا۔ اس کے بجائے ڈاؤن لوڈ کر کے دیکھیں۔'
+    }
+  };
+  let currentLang = 'en';
+  function t(key){ return (I18N[currentLang] && I18N[currentLang][key]) || key; }
+
+  function applyLang(lang){
+    currentLang = lang;
+    document.documentElement.lang = lang === 'ur' ? 'ur' : 'en';
+    document.documentElement.dir = lang === 'ur' ? 'rtl' : 'ltr';
+    document.body.classList.toggle('lang-ur', lang === 'ur');
+    $$('[data-i18n]').forEach(function(el){
+      const key = el.getAttribute('data-i18n');
+      if(I18N[lang] && I18N[lang][key] !== undefined) el.textContent = I18N[lang][key];
+    });
+    $$('[data-i18n-placeholder]').forEach(function(el){
+      const key = el.getAttribute('data-i18n-placeholder');
+      if(I18N[lang] && I18N[lang][key] !== undefined) el.placeholder = I18N[lang][key];
+    });
+    $$('.lang-btn').forEach(function(b){ b.classList.toggle('is-active', b.dataset.lang === lang); });
+    renderPresetGrid();
+    renderRecent();
+  }
+
+  /* ================= HELPERS ================= */
+  const $ = function(sel, ctx){ return (ctx||document).querySelector(sel); };
+  const $$ = function(sel, ctx){ return Array.prototype.slice.call((ctx||document).querySelectorAll(sel)); };
+  const reduceMotion = function(){ return typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches; };
+
+  function setError(el, msg){
+    el.textContent = msg; el.classList.add('show');
+    const panel = el.closest('form') || el.closest('.auth-card');
+    if(panel && !reduceMotion()){ panel.classList.remove('shake'); void panel.offsetWidth; panel.classList.add('shake'); }
+  }
+  function clearError(el){ el.textContent=''; el.classList.remove('show'); }
+  function escapeHtml(s){ return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+
+  function showView(id){
+    $$('.view').forEach(function(v){ v.classList.remove('active'); });
+    const target = document.getElementById(id);
+    if(target) target.classList.add('active');
+    document.body.dataset.view = id.replace('view-', '');
+    window.scrollTo({ top:0, behavior: reduceMotion() ? 'auto':'smooth' });
+  }
+
+  $$('[data-nav]').forEach(function(el){
+    el.addEventListener('click', function(e){
+      const target = this.getAttribute('data-nav');
+      if(target.charAt(0) === '#'){
+        e.preventDefault();
+        showView('view-home');
+        requestAnimationFrame(function(){
+          const anchor = document.querySelector(target);
+          if(anchor) anchor.scrollIntoView({ behavior: reduceMotion() ? 'auto':'smooth' });
+        });
+      } else {
+        e.preventDefault();
+        showView(target);
+      }
+    });
+  });
+
+  $$('.lang-btn').forEach(function(b){ b.addEventListener('click', function(){ applyLang(this.dataset.lang); }); });
+
+  let toastTimer;
+  function showToast(msg){
+    const el = $('#toast'); el.textContent = msg; el.classList.add('show');
+    clearTimeout(toastTimer); toastTimer = setTimeout(function(){ el.classList.remove('show'); }, 2800);
+  }
+
+  function attachTilt(el, max){
+    if(reduceMotion()) return;
+    max = max || 8;
+    el.addEventListener('mousemove', function(e){
+      const r = el.getBoundingClientRect();
+      const px = (e.clientX - r.left)/r.width - 0.5, py = (e.clientY - r.top)/r.height - 0.5;
+      el.style.setProperty('--rx', (-py*max).toFixed(2)+'deg');
+      el.style.setProperty('--ry', (px*max).toFixed(2)+'deg');
+      el.style.setProperty('--mx', (px*100+50)+'%');
+      el.style.setProperty('--my', (py*100+50)+'%');
+    });
+    el.addEventListener('mouseleave', function(){ el.style.setProperty('--rx','0deg'); el.style.setProperty('--ry','0deg'); });
+  }
+  function refreshTilts(){ $$('.tilt').forEach(function(el){ attachTilt(el, el.id === 'player-tilt' ? 12 : 7); }); }
+
+  /* ================= STATE ================= */
+  const state = {
+    users: [{ name:'Demo User', email:'demo@audioconverter.com', password:'demo123', provider:'password' }],
+    currentUser: null, pendingSignup: null, pendingOtp: null,
+    audioCtx: null, originalBuffer: null, originalFileName: '', recent: []
+  };
+
+  /* ================= AUTH ================= */
+  const signupForm = $('#signup-form');
+  signupForm.addEventListener('submit', function(e){
+    e.preventDefault();
+    const name = $('#su-name').value.trim();
+    const email = $('#su-email').value.trim().toLowerCase();
+    const pass = $('#su-pass').value, pass2 = $('#su-pass2').value;
+    const errEl = $('#su-error'); clearError(errEl);
+    if(!name || !email || !pass || !pass2){ setError(errEl, t('err_fill_all')); return; }
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ setError(errEl, t('err_invalid_email')); return; }
+    if(pass.length < 6){ setError(errEl, t('err_password_short')); return; }
+    if(pass !== pass2){ setError(errEl, t('err_password_mismatch')); return; }
+    if(state.users.some(function(u){ return u.email === email; })){ setError(errEl, t('err_email_registered')); return; }
+
+    const btn = $('#su-submit'); btn.disabled = true; btn.textContent = t('btn_creating');
+    setTimeout(function(){
+      state.pendingSignup = { name:name, email:email, password:pass, provider:'password' };
+      state.pendingOtp = String(Math.floor(100000 + Math.random()*900000));
+      btn.disabled = false; btn.textContent = t('btn_create_account');
+      signupForm.reset();
+      startVerify(email);
+    }, 700);
+  });
+
+  function startVerify(email){
+    $('#verify-sub').textContent = t('verify_sub_prefix') + ' ' + email;
+    $('#demo-otp-code').textContent = state.pendingOtp;
+    $$('.otp-box').forEach(function(b){ b.value=''; });
+    clearError($('#otp-error'));
+    showView('view-verify');
+    requestAnimationFrame(function(){ const f = $('.otp-box'); if(f) f.focus(); });
+  }
+
+  $$('.otp-box').forEach(function(box, idx, all){
+    box.addEventListener('input', function(){
+      this.value = this.value.replace(/\D/g,'').slice(0,1);
+      if(this.value && idx < all.length-1) all[idx+1].focus();
+    });
+    box.addEventListener('keydown', function(e){
+      if(e.key === 'Backspace' && !this.value && idx > 0) all[idx-1].focus();
+    });
+  });
+
+  $('#otp-verify-btn').addEventListener('click', function(){
+    const code = $$('.otp-box').map(function(b){ return b.value; }).join('');
+    const errEl = $('#otp-error'); clearError(errEl);
+    if(code.length < 6){ setError(errEl, t('err_otp_incomplete')); return; }
+    if(code !== state.pendingOtp){ setError(errEl, t('err_otp_wrong')); return; }
+    state.users.push(state.pendingSignup);
+    const user = state.pendingSignup;
+    state.pendingSignup = null; state.pendingOtp = null;
+    showToast(t('toast_verified'));
+    loginSuccess(user);
+  });
+
+  $('#otp-resend-btn').addEventListener('click', function(){
+    state.pendingOtp = String(Math.floor(100000 + Math.random()*900000));
+    $('#demo-otp-code').textContent = state.pendingOtp;
+    $$('.otp-box').forEach(function(b){ b.value=''; });
+    const f = $('.otp-box'); if(f) f.focus();
+    showToast(t('toast_otp_resent'));
+  });
+
+  const loginForm = $('#login-form');
+  loginForm.addEventListener('submit', function(e){
+    e.preventDefault();
+    const email = $('#li-email').value.trim().toLowerCase();
+    const pass = $('#li-pass').value;
+    const errEl = $('#li-error'); clearError(errEl);
+    if(!email || !pass){ setError(errEl, t('err_fill_all')); return; }
+    const user = state.users.find(function(u){ return u.email === email && u.password === pass; });
+    if(!user){ setError(errEl, t('err_login_invalid')); return; }
+    loginSuccess(user);
+  });
+  $('#demo-login').addEventListener('click', function(){ loginSuccess(state.users[0]); });
+
+  function loginSuccess(user){
+    state.currentUser = user;
+    const firstName = user.name.split(' ')[0];
+    $('#dash-name').textContent = firstName;
+    $('#nav-user-name').textContent = firstName;
+    document.body.dataset.authed = 'true';
+    showView('view-dashboard');
+    loginForm.reset();
+  }
+  $('#logout-btn').addEventListener('click', function(){
+    state.currentUser = null; document.body.dataset.authed = 'false'; showView('view-home');
+  });
+
+  function mockOAuth(providerName){
+    return function(){
+      showToast(t('toast_oauth_connecting') + ' ' + providerName + '...');
+      setTimeout(function(){
+        const email = providerName.toLowerCase() + 'user@demo.com';
+        let user = state.users.find(function(u){ return u.email === email; });
+        if(!user){ user = { name: providerName+' User', email:email, password:null, provider:providerName }; state.users.push(user); }
+        loginSuccess(user);
+        showToast(t('toast_oauth_success') + ' ' + providerName + '.');
+      }, 900);
+    };
+  }
+  $('#su-google-btn').addEventListener('click', mockOAuth('Google'));
+  $('#su-fb-btn').addEventListener('click', mockOAuth('Facebook'));
+  $('#li-google-btn').addEventListener('click', mockOAuth('Google'));
+  $('#li-fb-btn').addEventListener('click', mockOAuth('Facebook'));
+
+  /* ================= CONTACT FORM ================= */
+  $('#contact-form').addEventListener('submit', function(e){
+    e.preventDefault();
+    const form = this;
+    const name = $('#c-name').value.trim(), email = $('#c-email').value.trim(), msg = $('#c-message').value.trim();
+    const errEl = $('#c-error'); clearError(errEl);
+    if(!name || !email || !msg){ setError(errEl, t('err_fill_all')); return; }
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ setError(errEl, t('err_invalid_email')); return; }
+    const btn = $('#c-submit'); btn.disabled = true; btn.textContent = t('btn_sending');
+    setTimeout(function(){
+      btn.disabled = false; btn.textContent = t('btn_send_message');
+      form.reset();
+      $('#contact-success').classList.remove('hidden');
+      setTimeout(function(){ $('#contact-success').classList.add('hidden'); }, 4000);
+    }, 800);
+  });
+
+  /* ================= AUDIO DSP HELPERS ================= */
+  function hannWindow(size){
+    const w = new Float32Array(size);
+    for(let i=0;i<size;i++) w[i] = 0.5 * (1 - Math.cos(2*Math.PI*i/(size-1)));
+    return w;
+  }
+
+  function pitchShiftChannel(inputData, sampleRate, semitones){
+    const ratio = Math.pow(2, semitones/12);
+    let grainSize = Math.floor(sampleRate * 0.08);
+    grainSize = Math.max(512, Math.min(grainSize, Math.floor(inputData.length/4) || 512));
+    const overlap = Math.floor(grainSize/2);
+    const hop = grainSize - overlap;
+    const win = hannWindow(grainSize);
+    const output = new Float32Array(inputData.length);
+    for(let pos=0; pos+grainSize < inputData.length; pos += hop){
+      for(let i=0;i<grainSize;i++){
+        const srcIndex = pos + i*ratio;
+        const idx0 = Math.floor(srcIndex), idx1 = idx0+1, frac = srcIndex-idx0;
+        if(idx1 < inputData.length && idx0 >= 0){
+          const sample = inputData[idx0]*(1-frac) + inputData[idx1]*frac;
+          output[pos+i] += sample * win[i];
+        }
+      }
+    }
+    return output;
+  }
+
+  function reverseChannel(d){ const r = new Float32Array(d.length); for(let i=0;i<d.length;i++) r[i]=d[d.length-1-i]; return r; }
+
+  function noiseGateChannel(data, sampleRate, thresholdDb, strength){
+    const windowSize = Math.max(1, Math.floor(sampleRate*0.02));
+    const threshold = Math.pow(10, thresholdDb/20);
+    const output = new Float32Array(data.length);
+    const attackRate = 1/Math.max(1, Math.floor(sampleRate*0.005));
+    const releaseRate = 1/Math.max(1, Math.floor(sampleRate*0.05));
+    let currentGain = 1;
+    for(let i=0;i<data.length;i+=windowSize){
+      const end = Math.min(i+windowSize, data.length);
+      let sumSq = 0;
+      for(let j=i;j<end;j++) sumSq += data[j]*data[j];
+      const rms = Math.sqrt(sumSq/Math.max(1,(end-i)));
+      const targetGain = rms < threshold ? Math.max(0,1-strength) : 1;
+      for(let j=i;j<end;j++){
+        const rate = targetGain < currentGain ? attackRate : releaseRate;
+        currentGain += (targetGain - currentGain) * Math.min(1, rate*windowSize);
+        output[j] = data[j] * currentGain;
+      }
+    }
+    return output;
+  }
+
+  function makeImpulseResponse(ctx, duration, decay){
+    const rate = ctx.sampleRate;
+    const length = Math.max(1, Math.floor(rate*duration));
+    const impulse = ctx.createBuffer(2, length, rate);
+    for(let ch=0; ch<2; ch++){
+      const data = impulse.getChannelData(ch);
+      for(let i=0;i<length;i++) data[i] = (Math.random()*2-1) * Math.pow(1-i/length, decay);
+    }
+    return impulse;
+  }
+
+  function encodeWAV(audioBuffer){
+    const numChannels = audioBuffer.numberOfChannels;
+    const sampleRate = audioBuffer.sampleRate;
+    const numFrames = audioBuffer.length;
+    const blockAlign = numChannels*2;
+    const dataSize = numFrames*blockAlign;
+    const buffer = new ArrayBuffer(44+dataSize);
+    const view = new DataView(buffer);
+    function writeString(offset, str){ for(let i=0;i<str.length;i++) view.setUint8(offset+i, str.charCodeAt(i)); }
+    writeString(0,'RIFF'); view.setUint32(4, 36+dataSize, true); writeString(8,'WAVE');
+    writeString(12,'fmt '); view.setUint32(16,16,true); view.setUint16(20,1,true);
+    view.setUint16(22,numChannels,true); view.setUint32(24,sampleRate,true);
+    view.setUint32(28,sampleRate*blockAlign,true); view.setUint16(32,blockAlign,true); view.setUint16(34,16,true);
+    writeString(36,'data'); view.setUint32(40,dataSize,true);
+    const channelData = [];
+    for(let ch=0; ch<numChannels; ch++) channelData.push(audioBuffer.getChannelData(ch));
+    let offset = 44;
+    for(let i=0;i<numFrames;i++){
+      for(let ch=0; ch<numChannels; ch++){
+        let sample = Math.max(-1, Math.min(1, channelData[ch][i]));
+        sample = sample < 0 ? sample*0x8000 : sample*0x7FFF;
+        view.setInt16(offset, sample, true); offset += 2;
+      }
+    }
+    return new Blob([view], { type:'audio/wav' });
+  }
+
+  function formatDuration(sec){ const m = Math.floor(sec/60), s = Math.floor(sec%60); return m+':'+String(s).padStart(2,'0'); }
+
+  function drawWaveform(canvas, audioBuffer){
+    const ctx = canvas.getContext('2d');
+    canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight;
+    const width = canvas.width, height = canvas.height;
+    ctx.clearRect(0,0,width,height);
+    const data = audioBuffer.getChannelData(0);
+    const step = Math.max(1, Math.ceil(data.length/width));
+    const amp = height/2;
+    ctx.fillStyle = '#8B5CF6';
+    for(let i=0;i<width;i++){
+      let min=1.0, max=-1.0;
+      for(let j=0;j<step;j++){
+        const d = data[i*step+j];
+        if(d !== undefined){ if(d<min) min=d; if(d>max) max=d; }
+      }
+      ctx.fillRect(i, (1+min)*amp, 1, Math.max(1,(max-min)*amp));
+    }
+  }
+
+  function analyzeAudio(buffer){
+    const data = buffer.getChannelData(0);
+    const sampleRate = buffer.sampleRate;
+    const windowSize = Math.max(1, Math.floor(sampleRate*0.05));
+    const windowRms = [];
+    let peak = 0;
+    for(let i=0;i<data.length;i+=windowSize){
+      const end = Math.min(i+windowSize, data.length);
+      let sumSq = 0;
+      for(let j=i;j<end;j++){
+        const v = data[j], av = Math.abs(v);
+        if(av > peak) peak = av;
+        sumSq += v*v;
+      }
+      windowRms.push(Math.sqrt(sumSq/Math.max(1,(end-i))));
+    }
+    windowRms.sort(function(a,b){ return a-b; });
+    const noiseFloorRms = windowRms.length ? windowRms[Math.floor(windowRms.length*0.1)] : 0;
+    const noiseFloorDb = noiseFloorRms > 0.00001 ? 20*Math.log10(noiseFloorRms) : -80;
+    const peakDb = peak > 0.00001 ? 20*Math.log10(peak) : -80;
+
+    let gainDb = -1.5 - peakDb;
+    gainDb = Math.round(Math.max(-6, Math.min(12, gainDb))*10)/10;
+
+    let noiseStrength = 0;
+    if(noiseFloorDb > -55){
+      noiseStrength = Math.round(Math.min(0.7, Math.max(0,(noiseFloorDb+55)/35))*100)/100;
+    }
+    return { peakDb: Math.round(peakDb*10)/10, gainDb:gainDb, noiseFloorDb: Math.round(noiseFloorDb*10)/10, noiseStrength:noiseStrength, bassBoost:3 };
+  }
+
+  /* ================= PRESETS ================= */
+  const PRESETS = {
+    slowedReverb:{ nameKey:'preset_slowed_reverb_name', slug:'slowed_reverb', speed:0.8, reverb:0.55, icon:'reverb' },
+    slowDown:{ nameKey:'preset_slow_name', slug:'slow', speed:0.75, icon:'speed' },
+    nightcore:{ nameKey:'preset_nightcore_name', slug:'nightcore', speed:1.25, icon:'speed' },
+    eightD:{ nameKey:'preset_8d_name', slug:'8d', eightD:true, reverb:0.12, icon:'orbit' },
+    bassBooster:{ nameKey:'preset_bass_name', slug:'bass_boost', bass:11, icon:'bass' },
+    maleToFemale:{ nameKey:'preset_m2f_name', slug:'male_to_female', pitch:5, icon:'voice' },
+    femaleToMale:{ nameKey:'preset_f2m_name', slug:'female_to_male', pitch:-5, icon:'voice' },
+    remix:{ nameKey:'preset_remix_name', slug:'remix', speed:1.12, bass:7, reverb:0.2, eightD:true, icon:'remix' },
+    noiseRemoval:{ nameKey:'preset_noise_name', slug:'noise_removed', noise:0.6, icon:'shield' },
+    echo:{ nameKey:'preset_echo_name', slug:'echo', echo:true, icon:'reverb' },
+    vocalRemover:{ nameKey:'preset_vocal_name', slug:'karaoke', vocalRemove:true, icon:'micslash', stereoOnly:true }
+  };
+  const PRESET_DESC_KEY = {
+    slowedReverb:'preset_slowed_reverb_desc', slowDown:'preset_slow_desc', nightcore:'preset_nightcore_desc',
+    eightD:'preset_8d_desc', bassBooster:'preset_bass_desc', maleToFemale:'preset_m2f_desc', femaleToMale:'preset_f2m_desc',
+    remix:'preset_remix_desc', noiseRemoval:'preset_noise_desc', echo:'preset_echo_desc', vocalRemover:'preset_vocal_desc'
+  };
+  const ICONS = {
+    reverb:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 12a8 8 0 0 1 8-8m0 0a8 8 0 0 1 8 8m-8-8v16" stroke="#8B5CF6" stroke-width="1.6" stroke-linecap="round"/></svg>',
+    speed:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3" y="14" width="3.5" height="7" rx="1" fill="#FF3EA5"/><rect x="10.2" y="8" width="3.5" height="13" rx="1" fill="#FF3EA5"/><rect x="17.5" y="4" width="3.5" height="17" rx="1" fill="#FF3EA5"/></svg>',
+    orbit:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="#22D3EE" stroke-width="1.6" stroke-dasharray="3 3"/><circle cx="12" cy="4" r="2" fill="#22D3EE"/></svg>',
+    bass:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 12c2-5 4-5 6 0s4 5 6 0 4-5 6 0" stroke="#8B5CF6" stroke-width="2" stroke-linecap="round"/></svg>',
+    voice:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3z" stroke="#FF3EA5" stroke-width="1.6"/><path d="M6 11v1a6 6 0 0 0 12 0v-1M12 18v3" stroke="#FF3EA5" stroke-width="1.6" stroke-linecap="round"/></svg>',
+    remix:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="7" cy="7" r="2.4" stroke="#8B5CF6" stroke-width="1.6"/><circle cx="17" cy="12" r="2.4" stroke="#FF3EA5" stroke-width="1.6"/><circle cx="7" cy="17" r="2.4" stroke="#22D3EE" stroke-width="1.6"/><path d="M9.4 8.2 14.6 11M14.6 13l-5.2 2.8" stroke="#9C93B5" stroke-width="1.3"/></svg>',
+    shield:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 3l7 3v5c0 5-3.5 8-7 10-3.5-2-7-5-7-10V6l7-3z" stroke="#22D3EE" stroke-width="1.6"/><path d="M9 12l2 2 4-4" stroke="#22D3EE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    micslash:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3z" stroke="#FF3EA5" stroke-width="1.6"/><path d="M6 11v1a6 6 0 0 0 12 0v-1M12 18v3" stroke="#FF3EA5" stroke-width="1.6" stroke-linecap="round"/><path d="M4 4l16 16" stroke="#FF3EA5" stroke-width="1.6" stroke-linecap="round"/></svg>'
+  };
+
+  function renderPresetGrid(){
+    const grid = $('#preset-grid');
+    grid.innerHTML = Object.keys(PRESETS).map(function(key){
+      const p = PRESETS[key];
+      return '<button type="button" class="preset-card tilt" data-preset="'+key+'">'+
+        (ICONS[p.icon]||'') +
+        '<h4>'+escapeHtml(t(p.nameKey))+'</h4>'+
+        '<p>'+escapeHtml(t(PRESET_DESC_KEY[key]))+'</p>'+
+      '</button>';
+    }).join('');
+    $$('.preset-card', grid).forEach(function(card){ attachTilt(card, 7); });
+    bindPresetClicks();
+  }
+
+  function bindPresetClicks(){
+    $$('.preset-card').forEach(function(card){
+      card.addEventListener('click', function(){
+        if(!state.originalBuffer){ showToast(t('toast_upload_first')); return; }
+        const key = this.dataset.preset;
+        const preset = PRESETS[key];
+        if(preset.stereoOnly && state.originalBuffer.numberOfChannels < 2){ showToast(t('toast_stereo_required')); return; }
+        processAudio(preset, t(preset.nameKey), preset.slug);
+      });
+    });
+  }
+
+  /* ================= REMIX STUDIO SLIDERS ================= */
+  function bindSlider(id, valId, formatFn){
+    const el = $('#'+id), out = $('#'+valId);
+    const update = function(){ out.textContent = formatFn(Number(el.value)); };
+    el.addEventListener('input', update); update();
+  }
+  bindSlider('slider-speed','val-speed', function(v){ return v.toFixed(2)+'x'; });
+  bindSlider('slider-pitch','val-pitch', function(v){ return (v>0?'+':'')+v+' st'; });
+  bindSlider('slider-bass','val-bass', function(v){ return (v>0?'+':'')+v+' dB'; });
+  bindSlider('slider-reverb','val-reverb', function(v){ return v+'%'; });
+  bindSlider('slider-noise','val-noise', function(v){ return v+'%'; });
+
+  /* ================= AUTO / MANUAL TABS ================= */
+  $$('.mode-tab').forEach(function(tab){
+    tab.addEventListener('click', function(){
+      const mode = this.dataset.mode;
+      $$('.mode-tab').forEach(function(b){ b.classList.remove('is-active'); });
+      this.classList.add('is-active');
+      $('#mode-auto-panel').classList.toggle('hidden', mode !== 'auto');
+      $('#mode-manual-panel').classList.toggle('hidden', mode !== 'manual');
+    });
+  });
+
+  let lastAutoAnalysis = null;
+  $('#analyze-btn').addEventListener('click', function(){
+    if(!state.originalBuffer){ showToast(t('toast_upload_first')); return; }
+    lastAutoAnalysis = analyzeAudio(state.originalBuffer);
+    $('#auto-peak-value').textContent = lastAutoAnalysis.peakDb + ' dB';
+    $('#auto-gain-value').textContent = (lastAutoAnalysis.gainDb >= 0 ? '+' : '') + lastAutoAnalysis.gainDb + ' dB';
+    $('#auto-noise-floor-value').textContent = lastAutoAnalysis.noiseFloorDb + ' dB';
+    $('#auto-noise-apply-value').textContent = Math.round(lastAutoAnalysis.noiseStrength*100) + '%';
+    $('#auto-bass-value').textContent = '+' + lastAutoAnalysis.bassBoost + ' dB';
+    $('#auto-results').classList.remove('hidden');
+  });
+
+  $('#apply-auto-btn').addEventListener('click', function(){
+    if(!state.originalBuffer){ showToast(t('toast_upload_first')); return; }
+    if(!lastAutoAnalysis) lastAutoAnalysis = analyzeAudio(state.originalBuffer);
+    processAudio({ gainDb: lastAutoAnalysis.gainDb, noise: lastAutoAnalysis.noiseStrength, bass: lastAutoAnalysis.bassBoost }, t('auto_result_label'), 'auto_enhanced');
+  });
+
+  $('#apply-remix-btn').addEventListener('click', function(){
+    if(!state.originalBuffer){ showToast(t('toast_upload_first')); return; }
+    const opts = {
+      speed: Number($('#slider-speed').value), pitch: Number($('#slider-pitch').value),
+      bass: Number($('#slider-bass').value), reverb: Number($('#slider-reverb').value)/100,
+      noise: Number($('#slider-noise').value)/100, echo: $('#toggle-echo').checked,
+      eightD: $('#toggle-8d').checked, reverse: $('#toggle-reverse').checked, vocalRemove: $('#toggle-vocal-remove').checked
+    };
+    if(opts.vocalRemove && state.originalBuffer.numberOfChannels < 2){ showToast(t('toast_stereo_required')); return; }
+    processAudio(opts, t('remix_result_label'), 'custom_remix');
+  });
+
+  /* ================= UPLOAD ================= */
+  function readFileAsArrayBuffer(file){
+    return new Promise(function(resolve, reject){
+      const reader = new FileReader();
+      reader.onload = function(){ resolve(reader.result); };
+      reader.onerror = reject;
+      reader.readAsArrayBuffer(file);
+    });
+  }
+
+  async function handleFile(file){
+    const errEl = $('#upload-error'); clearError(errEl);
+    if(!file) return;
+    if(!/^audio\//.test(file.type) && !/\.(mp3|wav|m4a|ogg|aac|flac)$/i.test(file.name)){ setError(errEl, t('err_invalid_email') === t('err_invalid_email') ? 'Please upload a valid audio file.' : ''); return; }
+    if(file.size > 25*1024*1024){ setError(errEl, 'File is larger than 25MB.'); return; }
+
+    $('#upload-empty').classList.add('hidden');
+    $('#upload-loaded').classList.add('hidden');
+    $('#upload-loading').classList.remove('hidden');
+
+    try{
+      if(!state.audioCtx) state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const arrayBuffer = await readFileAsArrayBuffer(file);
+      const audioBuffer = await state.audioCtx.decodeAudioData(arrayBuffer);
+      state.originalBuffer = audioBuffer;
+      state.originalFileName = file.name;
+      document.body.dataset.fileLoaded = 'true';
+      $('#upload-filename').textContent = file.name;
+      $('#upload-duration').textContent = formatDuration(audioBuffer.duration) + ' · ' + audioBuffer.numberOfChannels + 'ch · ' + Math.round(audioBuffer.sampleRate/1000) + 'kHz';
+      const originalPlayer = $('#original-player');
+      originalPlayer.src = URL.createObjectURL(file);
+      originalPlayer.load();
+      $('#upload-loading').classList.add('hidden');
+      $('#upload-loaded').classList.remove('hidden');
+      drawWaveform($('#waveform-canvas'), audioBuffer);
+      $('#result-section').classList.add('hidden');
+      $('#processing-section').classList.add('hidden');
+      showToast(t('toast_file_loaded'));
+    } catch(err){
+      console.error(err);
+      $('#upload-loading').classList.add('hidden');
+      $('#upload-empty').classList.remove('hidden');
+      setError(errEl, 'Could not read this audio file. Try a different one.');
+    }
+  }
+
+  const fileInput = $('#file-input');
+  $('#browse-btn').addEventListener('click', function(){ fileInput.click(); });
+  $('#change-file-btn').addEventListener('click', function(){ fileInput.click(); });
+  fileInput.addEventListener('change', function(e){ if(e.target.files[0]) handleFile(e.target.files[0]); });
+
+  const dropZone = $('#upload-zone');
+  dropZone.addEventListener('dragover', function(e){ e.preventDefault(); dropZone.classList.add('drag-over'); });
+  dropZone.addEventListener('dragleave', function(e){ e.preventDefault(); dropZone.classList.remove('drag-over'); });
+  dropZone.addEventListener('drop', function(e){
+    e.preventDefault(); dropZone.classList.remove('drag-over');
+    if(e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+  });
+
+  /* ================= PROCESSING ================= */
+  async function processAudio(opts, displayLabel, slug){
+    if(!state.originalBuffer) return;
+    $('#processing-section').classList.remove('hidden');
+    $('#result-section').classList.add('hidden');
+    requestAnimationFrame(function(){ $('#processing-section').scrollIntoView({behavior: reduceMotion()?'auto':'smooth', block:'center'}); });
+
+    try{
+      const srcBuffer = state.originalBuffer;
+      const sampleRate = srcBuffer.sampleRate;
+      let chData = [];
+      for(let ch=0; ch<srcBuffer.numberOfChannels; ch++) chData.push(srcBuffer.getChannelData(ch).slice());
+
+      if(opts.reverse) chData = chData.map(reverseChannel);
+      if(opts.vocalRemove && chData.length === 2){
+        const L = chData[0], R = chData[1];
+        const out = new Float32Array(L.length);
+        for(let i=0;i<L.length;i++) out[i] = (L[i]-R[i]) * 0.6;
+        chData = [out, out.slice()];
+      }
+      if(opts.noise && opts.noise > 0) chData = chData.map(function(d){ return noiseGateChannel(d, sampleRate, -42, opts.noise); });
+      if(opts.pitch && opts.pitch !== 0) chData = chData.map(function(d){ return pitchShiftChannel(d, sampleRate, opts.pitch); });
+
+      const speed = opts.speed || 1;
+      const srcLength = chData[0].length;
+      const tailPadding = (opts.reverb ? 2.5 : 0) + (opts.echo ? 1.5 : 0);
+      const renderedLength = Math.max(1, Math.ceil(srcLength/speed + tailPadding*sampleRate));
+
+      const OfflineCtor = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+      const offlineCtx = new OfflineCtor(chData.length, renderedLength, sampleRate);
+      const procBuffer = offlineCtx.createBuffer(chData.length, srcLength, sampleRate);
+      for(let ch=0; ch<chData.length; ch++) procBuffer.copyToChannel(chData[ch], ch);
+
+      const source = offlineCtx.createBufferSource();
+      source.buffer = procBuffer;
+      source.playbackRate.value = speed;
+      let node = source;
+
+      if(opts.gainDb){
+        const gainNode = offlineCtx.createGain();
+        gainNode.gain.value = Math.pow(10, opts.gainDb/20);
+        node.connect(gainNode); node = gainNode;
+      }
+      if(opts.noise && opts.noise > 0){
+        const hp = offlineCtx.createBiquadFilter();
+        hp.type = 'highpass'; hp.frequency.value = 90;
+        node.connect(hp); node = hp;
+      }
+      if(opts.bass && opts.bass > 0){
+        const bassFilter = offlineCtx.createBiquadFilter();
+        bassFilter.type = 'lowshelf'; bassFilter.frequency.value = 150; bassFilter.gain.value = opts.bass;
+        node.connect(bassFilter); node = bassFilter;
+      }
+      if(opts.echo){
+        const delay = offlineCtx.createDelay(1.0); delay.delayTime.value = 0.28;
+        const feedback = offlineCtx.createGain(); feedback.gain.value = 0.35;
+        const echoMix = offlineCtx.createGain(); echoMix.gain.value = 0.5;
+        const dry = offlineCtx.createGain(); dry.gain.value = 1;
+        const sum = offlineCtx.createGain();
+        node.connect(delay); delay.connect(feedback); feedback.connect(delay); delay.connect(echoMix);
+        node.connect(dry); dry.connect(sum); echoMix.connect(sum);
+        node = sum;
+      }
+      if(opts.reverb && opts.reverb > 0){
+        const convolver = offlineCtx.createConvolver();
+        convolver.buffer = makeImpulseResponse(offlineCtx, 2.5, 2.2);
+        const wet = offlineCtx.createGain(); wet.gain.value = opts.reverb;
+        const dry2 = offlineCtx.createGain(); dry2.gain.value = 1 - opts.reverb*0.5;
+        const sum2 = offlineCtx.createGain();
+        node.connect(dry2); node.connect(convolver); convolver.connect(wet);
+        dry2.connect(sum2); wet.connect(sum2);
+        node = sum2;
+      }
+      if(opts.eightD){
+        const panner = offlineCtx.createStereoPanner();
+        const lfo = offlineCtx.createOscillator(); lfo.frequency.value = 0.15;
+        const lfoGain = offlineCtx.createGain(); lfoGain.gain.value = 0.9;
+        lfo.connect(lfoGain); lfoGain.connect(panner.pan); lfo.start(0);
+        node.connect(panner); node = panner;
+      }
+
+      const master = offlineCtx.createGain(); master.gain.value = 1;
+      node.connect(master); master.connect(offlineCtx.destination);
+      source.start(0);
+
+      const rendered = await offlineCtx.startRendering();
+      const blob = encodeWAV(rendered);
+      const url = URL.createObjectURL(blob);
+
+      showResult(url, displayLabel, slug);
+      addToRecent(displayLabel, slug, url);
+    } catch(err){
+      console.error(err);
+      showToast(t('toast_processing_error'));
+    } finally {
+      $('#processing-section').classList.add('hidden');
+    }
+  }
+
+  function showResult(url, label, slug){
+    $('#result-effect-name').textContent = label;
+    const resultPlayer = $('#result-player');
+    resultPlayer.src = url;
+    resultPlayer.load();
+    const base = (state.originalFileName || 'audio').replace(/\.[^.]+$/, '');
+    const filename = base + '_' + slug + '.wav';
+    $('#download-btn').href = url;
+    $('#download-btn').setAttribute('download', filename);
+    $('#result-section').classList.remove('hidden');
+    requestAnimationFrame(function(){ $('#result-section').scrollIntoView({behavior: reduceMotion()?'auto':'smooth', block:'start'}); });
+  }
+
+  $('#try-another-btn').addEventListener('click', function(){
+    $('#result-section').classList.add('hidden');
+    $('#preset-grid').scrollIntoView({behavior: reduceMotion()?'auto':'smooth', block:'start'});
+  });
+
+  function addToRecent(label, slug, url){
+    const base = (state.originalFileName || 'audio').replace(/\.[^.]+$/, '');
+    state.recent.unshift({ name: base+'_'+slug+'.wav', label:label, url:url, time: new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) });
+    state.recent = state.recent.slice(0,5);
+    renderRecent();
+  }
+
+  function renderRecent(){
+    const list = $('#recent-list'), empty = $('#recent-empty');
+    if(!list) return;
+    if(state.recent.length === 0){ list.innerHTML=''; if(empty) empty.classList.remove('hidden'); return; }
+    if(empty) empty.classList.add('hidden');
+    list.innerHTML = state.recent.map(function(r){
+      return '<li class="recent-item"><span class="recent-icon">'+ICONS.speed+'</span>'+
+        '<span class="recent-text"><strong dir="ltr">'+escapeHtml(r.name)+'</strong><small>'+escapeHtml(r.label)+' · '+r.time+'</small></span>'+
+        '<a class="btn btn-ghost btn-sm" href="'+r.url+'" download="'+escapeHtml(r.name)+'">'+escapeHtml(t('btn_download_free'))+'</a></li>';
+    }).join('');
+  }
+
+  /* ================= AUDIO PLAYER DIAGNOSTICS ================= */
+  ['#original-player', '#result-player'].forEach(function(sel){
+    const el = $(sel);
+    el.addEventListener('error', function(){
+      const code = el.error ? el.error.code : 'unknown';
+      console.error('Audio element error on', sel, '- MediaError code:', code);
+      showToast(t('toast_playback_error'));
+    });
+  });
+
+  /* ================= INIT ================= */
+  renderPresetGrid();
+  renderRecent();
+  refreshTilts();
+})();
+</script>
+</body>
+</html>
